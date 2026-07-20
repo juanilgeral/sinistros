@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Relatório de Sinistro — Juanil</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topbar no-print">
+  <div class="brand">JUANIL <span class="tag">SINISTROS</span></div>
+  <div class="user">
+    <a href="index.html" class="btn btn-ghost btn-sm" style="color:#fff;">← Voltar</a>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="toolbar no-print">
+    <div id="stampHolder"></div>
+    <div style="flex:1;"></div>
+    <button class="btn btn-outline" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
+    <a class="btn btn-outline" id="linkEditar" href="#">✎ Editar</a>
+    <button class="btn btn-danger" id="btnExcluir">Excluir</button>
+  </div>
+
+  <div id="relatorio"></div>
+</div>
+
+<script type="module">
+  import { protegerPagina, getDoc, deleteDoc, doc, SINISTROS_COL, fmtData, fmtDinheiro, campoOuPendente, statusBadge, toast } from "./app-core.js";
+
+  const params = new URLSearchParams(location.search);
+  const id = params.get("id");
+
+  protegerPagina(async () => {
+    if (!id) { document.getElementById("relatorio").innerHTML = "<p>Sinistro não especificado.</p>"; return; }
+    const ref = doc(SINISTROS_COL, id);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) { document.getElementById("relatorio").innerHTML = "<p>Sinistro não encontrado.</p>"; return; }
+    const s = snap.data();
+    document.getElementById("linkEditar").href = `form.html?id=${encodeURIComponent(id)}`;
+    document.getElementById("stampHolder").innerHTML = `
+      <div class="stamp ${s.status === 'concluido' ? '' : s.status === 'aberto' ? 'vermelho' : 'laranja'}">
+        <span class="dot"></span>${s.protocolo || id}
+      </div>`;
+    document.title = `Sinistro ${s.protocolo || id} — Juanil`;
+    render(s, id);
+
+    document.getElementById("btnExcluir").addEventListener("click", async () => {
+      if (!confirm(`Excluir definitivamente o processo ${s.protocolo || id}? Esta ação não pode ser desfeita.`)) return;
+      await deleteDoc(ref);
+      toast("Sinistro excluído.");
+      setTimeout(() => location.href = "index.html", 600);
+    });
+  });
+
+  function kv(label, valor, textoVazio) {
+    return `<tr><td>${label}</td><td>${campoOuPendente(valor, textoVazio)}</td></tr>`;
+  }
+
+  function categoriaLabel(key) {
+    return {
+      ebrat: "E-BRAT / E-DAT (registro oficial do acidente)",
+      cnhCondutor: "CNH do condutor",
+      rg: "RG do proprietário",
+      cpf: "CPF do proprietário",
+      comprovanteResidencia: "Comprovante de residência",
+      crlv: "CRLV atual do veículo",
+      orcamentosArquivos: "Orçamentos formais (arquivos)",
+      fotosDanos: "Fotos dos danos",
+      outros: "Outros documentos"
+    }[key] || key;
+  }
+
+  function render(s, id) {
+    const o = s.ocorrencia || {}, end = o.endereco || {}, cond = o.condicoes || {};
+    const vj = s.veiculoJuanil || {}, emp = vj.empresa || {}, cJ = vj.condutor || {}, endCJ = cJ.endereco || {};
+    const vt = s.veiculoTerceiro || {}, prop = vt.proprietario || {}, endProp = prop.endereco || {};
+    const det = s.detalhes || {};
+    const testemunhas = s.testemunhas || [];
+    const orcamentos = (s.orcamentos || []).map(o => ({ ...o, valorNum: parseFloat(o.valor) || 0 }));
+    const menorValor = orcamentos.length ? Math.min(...orcamentos.map(o => o.valorNum)) : null;
+    const orcamentosComCnpj = orcamentos.filter(o => o.cnpj?.trim());
+    const menorValorValido = orcamentosComCnpj.length ? Math.min(...orcamentosComCnpj.map(o => o.valorNum)) : null;
+    const temOrcamentoSemCnpjMaisBarato = orcamentos.some(o => !o.cnpj?.trim() && menorValorValido !== null && o.valorNum < menorValorValido);
+    const comunicacoes = s.comunicacoes || [];
+    const anexos = s.anexos || [];
+    const categoriasComArquivo = new Set(anexos.map(a => a.categoria));
+    const fotos = anexos.filter(a => a.categoria === "fotosDanos");
+    const passos = s.proximosPassos || [];
+
+    document.getElementById("relatorio").innerHTML = `
+      <div class="report-card">
+        <div class="report-head">
+          <div>
+            <div class="sub">Juanil Transportes Rodoviários</div>
+            <h1>Relatório Interno de Sinistro</h1>
+          </div>
+        </div>
+        <table class="meta-table">
+          <tr><td>Protocolo</td><td><b>${s.protocolo || id}</b></td></tr>
+          <tr><td>Referência</td><td>Caminhão ${campoOuPendente(vj.placa)} × Táxi/Veículo ${campoOuPendente(vt.placa)} — ${fmtData(o.data) || "data não informada"}</td></tr>
+          <tr><td>Status do processo</td><td>${statusBadge(s.status)} ${escapeHtmlLocal(s.statusResumo || "")}</td></tr>
+          <tr><td>Estrutura do relatório</td><td>Organizado conforme os campos do formulário oficial E-BRAT (PMERJ)</td></tr>
+        </table>
+
+        <div class="rpt-section">
+          <h2>1. Dados da Ocorrência</h2>
+          <h3>Quando ocorreu o acidente</h3>
+          <table class="kv-table">
+            ${kv("Data", fmtData(o.data))}
+            ${kv("Horário", o.horario)}
+          </table>
+          <h3>Onde ocorreu o acidente</h3>
+          <table class="kv-table">
+            ${kv("Local do acidente", o.localTipo)}
+            ${kv("Especifique", o.especifique)}
+          </table>
+          <h3>Endereço</h3>
+          <table class="kv-table">
+            ${kv("CEP", end.cep, "Sem CEP / não informado")}
+            ${kv("Logradouro", end.logradouro)}
+            ${kv("Número", end.numero)}
+            ${kv("Complemento", end.complemento)}
+            ${kv("Bairro", end.bairro)}
+            ${kv("Cidade", end.cidade)}
+            ${kv("UF", end.uf)}
+            ${kv("Ponto de referência", end.pontoReferencia)}
+          </table>
+          <h3>Condições do local</h3>
+          <table class="kv-table">
+            ${kv("Visibilidade", cond.visibilidade)}
+            ${kv("Condições da pista", cond.pista)}
+            ${kv("Sinalização", cond.sinalizacao)}
+            ${kv("Tipo de acidente", o.tipoAcidente)}
+          </table>
+          ${o.dinamica ? `<p class="rpt-narrative" style="margin-top:10px;"><b>Dinâmica:</b> ${escapeHtmlLocal(o.dinamica)}</p>` : ""}
+        </div>
+
+        <div class="rpt-section">
+          <h2>2. Veículo Principal — Frota Juanil (Empresa)</h2>
+          <h3>Dados do veículo</h3>
+          <table class="kv-table">
+            ${kv("Placa", vj.placa)}
+            ${kv("Marca/Modelo", vj.marcaModelo)}
+            ${kv("Tipo do veículo", vj.tipo)}
+            ${kv("Cor predominante", vj.cor)}
+            ${kv("UF", vj.uf)}
+            ${kv("Ano de fabricação", vj.anoFab)}
+            ${kv("Ano do modelo", vj.anoModelo)}
+            ${kv("Nº do chassi", vj.chassi)}
+            ${kv("RENAVAM", vj.renavam)}
+            ${kv("O veículo é da empresa?", vj.daEmpresa === "sim" ? "Sim" : vj.daEmpresa === "nao" ? "Não" : "")}
+          </table>
+          <h3>Dados da empresa</h3>
+          <table class="kv-table">
+            ${kv("Razão social", emp.razaoSocial)}
+            ${kv("CNPJ", emp.cnpj)}
+            ${kv("CEP", emp.cep)}
+            ${kv("Logradouro", emp.logradouro)}
+            ${kv("Número", emp.numero)}
+            ${kv("Complemento", emp.complemento)}
+            ${kv("Bairro", emp.bairro)}
+            ${kv("Cidade", emp.cidade)}
+            ${kv("UF", emp.uf)}
+          </table>
+          <h3>Dados do condutor</h3>
+          <table class="kv-table">
+            ${kv("Nome", cJ.nome)}
+            ${kv("CPF", cJ.cpf)}
+            ${kv("Data de nascimento", fmtData(cJ.nascimento))}
+            ${kv("Nº CNH", cJ.cnhNumero)}
+            ${kv("Validade", fmtData(cJ.cnhValidade))}
+            ${kv("RG / órgão emissor", cJ.rg)}
+            ${kv("Categoria", cJ.categoria)}
+          </table>
+          <h3>Endereço do condutor</h3>
+          <table class="kv-table">
+            ${kv("CEP", endCJ.cep)}
+            ${kv("Logradouro", endCJ.logradouro)}
+            ${kv("Número", endCJ.numero)}
+            ${kv("Complemento", endCJ.complemento)}
+            ${kv("Bairro", endCJ.bairro)}
+            ${kv("Cidade", endCJ.cidade)}
+            ${kv("UF", endCJ.uf)}
+          </table>
+          <h3>Danos</h3>
+          <p class="rpt-narrative">${campoOuPendente(vj.danos, "Não informado")}</p>
+        </div>
+
+        <div class="rpt-section">
+          <h2>3. Veículo de Terceiro</h2>
+          <h3>Dados do veículo</h3>
+          <table class="kv-table">
+            ${kv("Placa", vt.placa)}
+            ${kv("Marca/Modelo", vt.marcaModelo)}
+            ${kv("Tipo do veículo", vt.tipo)}
+            ${kv("Cor predominante", vt.cor)}
+            ${kv("UF", vt.uf)}
+            ${kv("Ano de fabricação", vt.anoFab)}
+            ${kv("Ano do modelo", vt.anoModelo)}
+            ${kv("Nº do chassi", vt.chassi)}
+            ${kv("RENAVAM", vt.renavam)}
+            ${kv("O veículo é da empresa?", vt.daEmpresa === "sim" ? "Sim" : vt.daEmpresa === "nao" ? "Não" : "")}
+          </table>
+          <h3>Dados do proprietário</h3>
+          <table class="kv-table">
+            ${kv("Nome", prop.nome)}
+            ${kv("CPF", prop.cpf)}
+            ${kv("Data de nascimento", fmtData(prop.nascimento))}
+            ${kv("O proprietário é o condutor?", s.veiculoTerceiro?.proprietarioEhCondutor === "sim" ? "Sim" : s.veiculoTerceiro?.proprietarioEhCondutor === "nao" ? "Não" : "")}
+            ${kv("Nº CNH", prop.cnhNumero)}
+            ${kv("Validade", fmtData(prop.cnhValidade))}
+            ${kv("RG / órgão emissor", prop.rg)}
+          </table>
+          <h3>Endereço do proprietário</h3>
+          <table class="kv-table">
+            ${kv("CEP", endProp.cep)}
+            ${kv("Logradouro", endProp.logradouro)}
+            ${kv("Número", endProp.numero)}
+            ${kv("Complemento", endProp.complemento)}
+            ${kv("Bairro", endProp.bairro)}
+            ${kv("Cidade", endProp.cidade)}
+            ${kv("UF", endProp.uf)}
+          </table>
+          ${vt.condutor?.nome ? `
+          <h3>Dados do condutor (quando não é o proprietário)</h3>
+          <table class="kv-table">
+            ${kv("Nome", vt.condutor.nome)}
+            ${kv("CPF", vt.condutor.cpf)}
+            ${kv("Data de nascimento", fmtData(vt.condutor.nascimento))}
+            ${kv("Nº CNH", vt.condutor.cnhNumero)}
+            ${kv("Validade", fmtData(vt.condutor.cnhValidade))}
+            ${kv("Endereço", vt.condutor.enderecoResumo)}
+          </table>` : ""}
+          <h3>Danos</h3>
+          <p class="rpt-narrative">${campoOuPendente(vt.danos, "Não informado")}</p>
+        </div>
+
+        <div class="rpt-section">
+          <h2>4. Testemunhas</h2>
+          ${s.semTestemunhas || testemunhas.length === 0
+            ? `<p class="rpt-narrative">Não houve testemunhas no local do acidente.</p>`
+            : `<table class="kv-table">${testemunhas.map((t, i) => `
+                <tr><td>Testemunha ${i + 1}</td><td>${escapeHtmlLocal(t.nome || "")} ${t.cpf ? "— CPF " + escapeHtmlLocal(t.cpf) : ""} ${t.celular ? "— " + escapeHtmlLocal(t.celular) : ""}</td></tr>
+              `).join("")}</table>`}
+        </div>
+
+        <div class="rpt-section">
+          <h2>5. Detalhes do Acidente</h2>
+          <table class="kv-table">
+            ${kv("Data que ocorreu o sinistro", fmtData(det.data) || fmtData(o.data))}
+            ${kv("Local", det.local || o.especifique)}
+            ${kv("Hora que ocorreu o sinistro", det.hora || o.horario)}
+            ${kv("CNH do condutor", det.cnhCondutor || cJ.cnhNumero)}
+          </table>
+          <h3>Relato de como ocorreu o sinistro</h3>
+          <p class="rpt-narrative">${campoOuPendente(det.relato, "Relato ainda não registrado.")}</p>
+          ${det.autoriaRelato ? `<p class="rpt-note">${escapeHtmlLocal(det.autoriaRelato)}</p>` : ""}
+          ${det.complementar ? `<h3>Descrição complementar do processo</h3><p class="rpt-narrative">${escapeHtmlLocal(det.complementar)}</p>` : ""}
+        </div>
+
+        <div class="rpt-section">
+          <h2>6. Documentação Recebida</h2>
+          <table class="kv-table" style="margin-bottom:10px;">
+            ${kv("Protocolo E-BRAT do terceiro", s.documentacao?.ebratTerceiro)}
+            ${kv("Protocolo E-BRAT da Juanil", s.documentacao?.ebratJuanil)}
+          </table>
+          <table class="doc-table">
+            <tr><th>Documento</th><th>Status</th></tr>
+            ${["ebrat","cnhCondutor","rg","cpf","comprovanteResidencia","crlv","orcamentosArquivos","fotosDanos"].map((k) => `
+              <tr><td>${categoriaLabel(k)}</td><td class="${categoriasComArquivo.has(k) ? "status-recebido" : "status-pendente"}">${categoriasComArquivo.has(k) ? "Recebido" : "Pendente"}</td></tr>
+            `).join("")}
+          </table>
+        </div>
+
+        <div class="rpt-section">
+          <h2>7. Orçamentos de Reparo — Comparativo</h2>
+          ${orcamentos.length ? `
+          <table class="doc-table">
+            <tr><th>Oficina</th><th>CNPJ</th><th>Data</th><th>Valor</th></tr>
+            ${orcamentos.map(o => `
+              <tr class="${o.valorNum === menorValorValido && o.cnpj?.trim() ? "orc-menor" : ""}">
+                <td>${escapeHtmlLocal(o.oficina || "")}</td>
+                <td>${o.cnpj?.trim() ? escapeHtmlLocal(o.cnpj) : '<span class="pend">⚠ sem CNPJ — não conforme</span>'}</td>
+                <td>${fmtData(o.dataIso)}</td>
+                <td>${fmtDinheiro(o.valorNum)}</td>
+              </tr>`).join("")}
+          </table>
+          <p class="rpt-narrative" style="margin-top:8px;">
+            ${menorValorValido !== null ? `<b>Menor orçamento com CNPJ válido: ${fmtDinheiro(menorValorValido)}</b>` : `<span class="pend">Nenhum orçamento com CNPJ informado ainda.</span>`}
+            ${temOrcamentoSemCnpjMaisBarato ? `<br><span class="pend">Há orçamento(s) sem CNPJ com valor menor — regularizar antes de considerar na decisão final.</span>` : ""}
+          </p>
+          ` : `<p class="rpt-narrative">Nenhum orçamento cadastrado ainda.</p>`}
+
+          ${comunicacoes.length ? `
+          <h3>Comunicações recebidas</h3>
+          ${comunicacoes.map(c => `
+            <p class="rpt-narrative" style="margin-bottom:4px;"><b>${fmtData(c.dataIso)}${c.remetente ? " — " + escapeHtmlLocal(c.remetente) : ""}:</b></p>
+            <p class="rpt-narrative" style="font-style:italic;border-left:3px solid #E3E7ED;padding-left:10px;margin-bottom:14px;">"${escapeHtmlLocal(c.texto)}"</p>
+          `).join("")}
+          ` : ""}
+        </div>
+
+        <div class="rpt-section">
+          <h2>8. Status do Processo e Próximos Passos</h2>
+          ${passos.length ? `<ul class="rpt-narrative">${passos.map(p => `<li>${escapeHtmlLocal(p)}</li>`).join("")}</ul>` : `<p class="rpt-narrative">Nenhum próximo passo cadastrado.</p>`}
+        </div>
+
+        ${fotos.length ? `
+        <div class="rpt-section">
+          <h2>Anexo — Fotos dos Danos</h2>
+          <div class="photo-grid">
+            ${fotos.map((f, i) => `<figure><img src="${f.url}" alt="Foto ${i+1}"><figcaption>Foto ${i+1} — ${escapeHtmlLocal(f.nome)}</figcaption></figure>`).join("")}
+          </div>
+        </div>` : ""}
+
+        ${anexos.length ? `
+        <div class="rpt-section no-print">
+          <h2>Todos os anexos</h2>
+          <table class="doc-table">
+            <tr><th>Categoria</th><th>Arquivo</th></tr>
+            ${anexos.map(a => `<tr><td>${categoriaLabel(a.categoria)}</td><td><a href="${a.url}" target="_blank" rel="noopener">${escapeHtmlLocal(a.nome)}</a></td></tr>`).join("")}
+          </table>
+        </div>` : ""}
+      </div>
+    `;
+  }
+
+  function escapeHtmlLocal(str) {
+    const div = document.createElement("div");
+    div.textContent = str || "";
+    return div.innerHTML;
+  }
+</script>
+</body>
+</html>

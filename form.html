@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Novo Sinistro — Juanil</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">JUANIL <span class="tag">SINISTROS</span></div>
+  <div class="user">
+    <span id="protocoloTag"></span>
+    <a href="index.html" class="btn btn-ghost btn-sm" style="color:#fff;">← Voltar</a>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="form-shell">
+    <div class="tabs" id="tabs">
+      <button class="tab-btn active" data-tab="ocorrencia">1. Ocorrência</button>
+      <button class="tab-btn" data-tab="juanil">2. Caminhão Juanil</button>
+      <button class="tab-btn" data-tab="terceiro">3. Veículo Terceiro</button>
+      <button class="tab-btn" data-tab="testemunhas">4. Testemunhas</button>
+      <button class="tab-btn" data-tab="relato">5. Relato</button>
+      <button class="tab-btn" data-tab="documentos">6. Documentos</button>
+      <button class="tab-btn" data-tab="orcamentos">7. Orçamentos</button>
+      <button class="tab-btn" data-tab="status">8. Status</button>
+    </div>
+
+    <form id="formSinistro">
+      <!-- ===================== 1. OCORRÊNCIA ===================== -->
+      <div class="tab-panel active" data-tab="ocorrencia">
+        <div class="section-title">Quando ocorreu o acidente</div>
+        <div class="field-grid cols-2">
+          <div class="field"><label>Data <span class="req">*</span></label><input type="date" name="ocorrencia.data" required></div>
+          <div class="field"><label>Horário <span class="req">*</span></label><input type="time" name="ocorrencia.horario" required></div>
+        </div>
+
+        <div class="section-title">Onde ocorreu o acidente</div>
+        <div class="field-grid cols-2">
+          <div class="field">
+            <label>Local do acidente <span class="req">*</span></label>
+            <select name="ocorrencia.localTipo">
+              <option value="Via urbana">Via urbana</option>
+              <option value="Rodovia">Rodovia</option>
+              <option value="Estacionamento">Estacionamento</option>
+              <option value="Pátio/garagem">Pátio/garagem</option>
+              <option value="Outro">Outro</option>
+            </select>
+          </div>
+          <div class="field span-2"><label>Especifique <span class="req">*</span></label><input type="text" name="ocorrencia.especifique" placeholder="Ex.: Praia de Botafogo, esquina com Rua Farane"></div>
+        </div>
+
+        <div class="section-title">Endereço</div>
+        <div class="field-grid cols-4">
+          <div class="field"><label>CEP</label><input type="text" name="ocorrencia.endereco.cep"></div>
+          <div class="field span-2"><label>Logradouro <span class="req">*</span></label><input type="text" name="ocorrencia.endereco.logradouro"></div>
+          <div class="field"><label>Número</label><input type="text" name="ocorrencia.endereco.numero" placeholder="ou S/N"></div>
+          <div class="field"><label>Complemento</label><input type="text" name="ocorrencia.endereco.complemento"></div>
+          <div class="field"><label>Bairro <span class="req">*</span></label><input type="text" name="ocorrencia.endereco.bairro"></div>
+          <div class="field"><label>Cidade <span class="req">*</span></label><input type="text" name="ocorrencia.endereco.cidade" value="Rio de Janeiro"></div>
+          <div class="field"><label>UF <span class="req">*</span></label><input type="text" name="ocorrencia.endereco.uf" maxlength="2" value="RJ" style="text-transform:uppercase;"></div>
+        </div>
+        <div class="field-grid cols-2">
+          <div class="field span-2"><label>Ponto de referência</label><input type="text" name="ocorrencia.endereco.pontoReferencia"></div>
+        </div>
+
+        <div class="section-title">Condições do local</div>
+        <div class="field-grid cols-4">
+          <div class="field">
+            <label>Visibilidade</label>
+            <select name="ocorrencia.condicoes.visibilidade"><option value="">— selecione —</option><option>Boa</option><option>Deficiente</option></select>
+          </div>
+          <div class="field">
+            <label>Condições da pista</label>
+            <select name="ocorrencia.condicoes.pista"><option value="">— selecione —</option><option>Boa</option><option>Deficiente</option></select>
+          </div>
+          <div class="field">
+            <label>Sinalização</label>
+            <select name="ocorrencia.condicoes.sinalizacao"><option value="">— selecione —</option><option>Boa</option><option>Deficiente</option><option>Sem sinalização</option></select>
+          </div>
+          <div class="field">
+            <label>Tipo de acidente</label>
+            <select name="ocorrencia.tipoAcidente">
+              <option value="">— selecione —</option>
+              <option>Abalroamento</option><option>Capotagem</option><option>Choque</option>
+              <option>Colisão</option><option>Tombamento</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-grid cols-2">
+          <div class="field span-2"><label>Dinâmica resumida (aparece no topo do relatório)</label><textarea name="ocorrencia.dinamica" placeholder="Resumo curto de como ocorreu, para a Seção 1 do relatório"></textarea></div>
+        </div>
+      </div>
+
+      <!-- ===================== 2. VEÍCULO JUANIL ===================== -->
+      <div class="tab-panel" data-tab="juanil">
+        <div class="section-title">Dados do veículo</div>
+        <div class="field-grid cols-4">
+          <div class="field mono"><label>Placa <span class="req">*</span></label><input type="text" name="veiculoJuanil.placa" style="text-transform:uppercase;"></div>
+          <div class="field span-2"><label>Marca/Modelo</label><input type="text" name="veiculoJuanil.marcaModelo"></div>
+          <div class="field"><label>Tipo do veículo</label><input type="text" name="veiculoJuanil.tipo" value="Caminhão"></div>
+          <div class="field"><label>Cor predominante</label><input type="text" name="veiculoJuanil.cor"></div>
+          <div class="field"><label>UF</label><input type="text" name="veiculoJuanil.uf" maxlength="2" value="RJ"></div>
+          <div class="field"><label>Ano de fabricação</label><input type="text" name="veiculoJuanil.anoFab"></div>
+          <div class="field"><label>Ano do modelo</label><input type="text" name="veiculoJuanil.anoModelo"></div>
+          <div class="field mono"><label>Nº do chassi</label><input type="text" name="veiculoJuanil.chassi" style="text-transform:uppercase;"></div>
+          <div class="field mono"><label>RENAVAM</label><input type="text" name="veiculoJuanil.renavam"></div>
+        </div>
+        <div class="field"><label>O veículo é da empresa?</label>
+          <div class="radio-row">
+            <label><input type="radio" name="veiculoJuanil.daEmpresa" value="sim" checked> Sim</label>
+            <label><input type="radio" name="veiculoJuanil.daEmpresa" value="nao"> Não</label>
+          </div>
+        </div>
+
+        <div class="section-title">Dados da empresa</div>
+        <div class="field-grid cols-2">
+          <div class="field span-2"><label>Razão social</label><input type="text" name="veiculoJuanil.empresa.razaoSocial" value="Juanil Transportes Rodoviários"></div>
+          <div class="field mono"><label>CNPJ</label><input type="text" name="veiculoJuanil.empresa.cnpj"></div>
+          <div class="field"><label>CEP</label><input type="text" name="veiculoJuanil.empresa.cep"></div>
+        </div>
+        <div class="field-grid cols-4">
+          <div class="field span-2"><label>Logradouro</label><input type="text" name="veiculoJuanil.empresa.logradouro"></div>
+          <div class="field"><label>Número</label><input type="text" name="veiculoJuanil.empresa.numero"></div>
+          <div class="field"><label>Complemento</label><input type="text" name="veiculoJuanil.empresa.complemento"></div>
+          <div class="field"><label>Bairro</label><input type="text" name="veiculoJuanil.empresa.bairro"></div>
+          <div class="field"><label>Cidade</label><input type="text" name="veiculoJuanil.empresa.cidade"></div>
+          <div class="field"><label>UF</label><input type="text" name="veiculoJuanil.empresa.uf" maxlength="2" value="RJ"></div>
+        </div>
+
+        <div class="section-title">Dados do condutor</div>
+        <div class="field-grid cols-2">
+          <div class="field span-2"><label>Nome completo</label><input type="text" name="veiculoJuanil.condutor.nome"></div>
+          <div class="field mono"><label>CPF</label><input type="text" name="veiculoJuanil.condutor.cpf"></div>
+          <div class="field"><label>Data de nascimento</label><input type="date" name="veiculoJuanil.condutor.nascimento"></div>
+        </div>
+        <div class="field-grid cols-4">
+          <div class="field mono"><label>Nº CNH</label><input type="text" name="veiculoJuanil.condutor.cnhNumero"></div>
+          <div class="field"><label>Validade CNH</label><input type="date" name="veiculoJuanil.condutor.cnhValidade"></div>
+          <div class="field mono"><label>RG / órgão emissor</label><input type="text" name="veiculoJuanil.condutor.rg" placeholder="Ex.: 132527631 IFP/RJ"></div>
+          <div class="field"><label>Categoria</label><input type="text" name="veiculoJuanil.condutor.categoria"></div>
+        </div>
+
+        <div class="section-title">Endereço do condutor</div>
+        <div class="field-grid cols-4">
+          <div class="field"><label>CEP</label><input type="text" name="veiculoJuanil.condutor.endereco.cep"></div>
+          <div class="field span-2"><label>Logradouro</label><input type="text" name="veiculoJuanil.condutor.endereco.logradouro"></div>
+          <div class="field"><label>Número</label><input type="text" name="veiculoJuanil.condutor.endereco.numero"></div>
+          <div class="field"><label>Complemento</label><input type="text" name="veiculoJuanil.condutor.endereco.complemento"></div>
+          <div class="field"><label>Bairro</label><input type="text" name="veiculoJuanil.condutor.endereco.bairro"></div>
+          <div class="field"><label>Cidade</label><input type="text" name="veiculoJuanil.condutor.endereco.cidade"></div>
+          <div class="field"><label>UF</label><input type="text" name="veiculoJuanil.condutor.endereco.uf" maxlength="2"></div>
+        </div>
+
+        <div class="section-title">Danos</div>
+        <div class="field"><label>Descrição dos danos no caminhão</label><textarea name="veiculoJuanil.danos"></textarea></div>
+      </div>
+
+      <!-- ===================== 3. VEÍCULO TERCEIRO ===================== -->
+      <div class="tab-panel" data-tab="terceiro">
+        <div class="section-title">Dados do veículo</div>
+        <div class="field-grid cols-4">
+          <div class="field mono"><label>Placa <span class="req">*</span></label><input type="text" name="veiculoTerceiro.placa" style="text-transform:uppercase;"></div>
+          <div class="field span-2"><label>Marca/Modelo</label><input type="text" name="veiculoTerceiro.marcaModelo"></div>
+          <div class="field"><label>Tipo do veículo</label><input type="text" name="veiculoTerceiro.tipo"></div>
+          <div class="field"><label>Cor predominante</label><input type="text" name="veiculoTerceiro.cor"></div>
+          <div class="field"><label>UF</label><input type="text" name="veiculoTerceiro.uf" maxlength="2" value="RJ"></div>
+          <div class="field"><label>Ano de fabricação</label><input type="text" name="veiculoTerceiro.anoFab"></div>
+          <div class="field"><label>Ano do modelo</label><input type="text" name="veiculoTerceiro.anoModelo"></div>
+          <div class="field mono"><label>Nº do chassi</label><input type="text" name="veiculoTerceiro.chassi" style="text-transform:uppercase;"></div>
+          <div class="field mono"><label>RENAVAM</label><input type="text" name="veiculoTerceiro.renavam"></div>
+        </div>
+        <div class="field"><label>O veículo é da empresa?</label>
+          <div class="radio-row">
+            <label><input type="radio" name="veiculoTerceiro.daEmpresa" value="sim"> Sim</label>
+            <label><input type="radio" name="veiculoTerceiro.daEmpresa" value="nao" checked> Não</label>
+          </div>
+        </div>
+
+        <div class="section-title">Dados do proprietário</div>
+        <div class="field-grid cols-2">
+          <div class="field span-2"><label>Nome completo <span class="req">*</span></label><input type="text" name="veiculoTerceiro.proprietario.nome"></div>
+          <div class="field mono"><label>CPF <span class="req">*</span></label><input type="text" name="veiculoTerceiro.proprietario.cpf"></div>
+          <div class="field"><label>Data de nascimento <span class="req">*</span></label><input type="date" name="veiculoTerceiro.proprietario.nascimento"></div>
+        </div>
+        <div class="field"><label>O proprietário é o condutor?</label>
+          <div class="radio-row">
+            <label><input type="radio" name="veiculoTerceiro.proprietarioEhCondutor" value="sim" checked> Sim</label>
+            <label><input type="radio" name="veiculoTerceiro.proprietarioEhCondutor" value="nao"> Não</label>
+          </div>
+        </div>
+
+        <div class="section-title">Endereço do proprietário</div>
+        <div class="field-grid cols-4">
+          <div class="field"><label>CEP <span class="req">*</span></label><input type="text" name="veiculoTerceiro.proprietario.endereco.cep"></div>
+          <div class="field span-2"><label>Logradouro <span class="req">*</span></label><input type="text" name="veiculoTerceiro.proprietario.endereco.logradouro"></div>
+          <div class="field"><label>Número <span class="req">*</span></label><input type="text" name="veiculoTerceiro.proprietario.endereco.numero"></div>
+          <div class="field"><label>Complemento</label><input type="text" name="veiculoTerceiro.proprietario.endereco.complemento"></div>
+          <div class="field"><label>Bairro <span class="req">*</span></label><input type="text" name="veiculoTerceiro.proprietario.endereco.bairro"></div>
+          <div class="field"><label>Cidade <span class="req">*</span></label><input type="text" name="veiculoTerceiro.proprietario.endereco.cidade"></div>
+          <div class="field"><label>UF <span class="req">*</span></label><input type="text" name="veiculoTerceiro.proprietario.endereco.uf" maxlength="2"></div>
+        </div>
+
+        <div class="field-grid cols-2">
+          <div class="field mono"><label>Nº CNH <span class="req">*</span></label><input type="text" name="veiculoTerceiro.proprietario.cnhNumero"></div>
+          <div class="field"><label>Validade <span class="req">*</span></label><input type="date" name="veiculoTerceiro.proprietario.cnhValidade"></div>
+          <div class="field mono span-2"><label>RG / órgão emissor</label><input type="text" name="veiculoTerceiro.proprietario.rg"></div>
+        </div>
+
+        <div id="blocoCondutorDistinto" style="display:none;">
+          <div class="section-title">Dados do condutor (quando não é o proprietário)</div>
+          <div class="field-grid cols-2">
+            <div class="field span-2"><label>Nome</label><input type="text" name="veiculoTerceiro.condutor.nome"></div>
+            <div class="field mono"><label>CPF</label><input type="text" name="veiculoTerceiro.condutor.cpf"></div>
+            <div class="field"><label>Data de nascimento</label><input type="date" name="veiculoTerceiro.condutor.nascimento"></div>
+          </div>
+          <div class="field-grid cols-4">
+            <div class="field mono"><label>Nº CNH</label><input type="text" name="veiculoTerceiro.condutor.cnhNumero"></div>
+            <div class="field"><label>Validade</label><input type="date" name="veiculoTerceiro.condutor.cnhValidade"></div>
+            <div class="field span-2"><label>Bairro/Cidade/UF</label><input type="text" name="veiculoTerceiro.condutor.enderecoResumo"></div>
+          </div>
+        </div>
+
+        <div class="section-title">Danos</div>
+        <div class="field"><label>Descrição dos danos no veículo de terceiro</label><textarea name="veiculoTerceiro.danos"></textarea></div>
+      </div>
+
+      <!-- ===================== 4. TESTEMUNHAS ===================== -->
+      <div class="tab-panel" data-tab="testemunhas">
+        <div class="section-title">Testemunhas</div>
+        <div id="listaTestemunhas"></div>
+        <button type="button" class="btn btn-outline btn-sm" id="btnAddTestemunha">+ Adicionar testemunha</button>
+        <div class="field" style="margin-top:16px;">
+          <label><input type="checkbox" id="semTestemunhas"> Não houve testemunhas no local</label>
+        </div>
+      </div>
+
+      <!-- ===================== 5. RELATO ===================== -->
+      <div class="tab-panel" data-tab="relato">
+        <div class="section-title">Dados do sinistro</div>
+        <div class="field-grid cols-4">
+          <div class="field"><label>Data que ocorreu o sinistro</label><input type="date" name="detalhes.data" placeholder="preenchido a partir da Seção 1"></div>
+          <div class="field"><label>Local</label><input type="text" name="detalhes.local"></div>
+          <div class="field"><label>Hora que ocorreu</label><input type="time" name="detalhes.hora"></div>
+          <div class="field mono"><label>CNH do condutor Juanil</label><input type="text" name="detalhes.cnhCondutor"></div>
+        </div>
+        <div class="section-title">Relato de como ocorreu o sinistro</div>
+        <div class="field"><textarea name="detalhes.relato" style="min-height:160px;" placeholder="Descreva detalhadamente os fatos relacionados ao acidente. Este campo é o mais importante para o entendimento do caso e para a defesa da empresa quando aplicável."></textarea></div>
+        <div class="field"><label>Autoria do relato (aparece como nota de rodapé do relato)</label><input type="text" name="detalhes.autoriaRelato" placeholder="Ex.: Versão do condutor Fulano, apresentada em defesa do motorista da Juanil"></div>
+        <div class="section-title">Descrição complementar do processo</div>
+        <div class="field"><textarea name="detalhes.complementar" placeholder="Contexto adicional: contato do terceiro, prazos, observações do jurídico etc."></textarea></div>
+
+        <div class="section-title">Comunicações recebidas (e-mails, mensagens)</div>
+        <p class="hint">Cole aqui e-mails ou mensagens recebidas das partes (ex.: pedido de agilidade, envio de novo orçamento). Eles aparecem citados no relatório.</p>
+        <div id="listaComunicacoes"></div>
+        <button type="button" class="btn btn-outline btn-sm" id="btnAddComunicacao">+ Adicionar comunicação</button>
+      </div>
+
+      <!-- ===================== 6. DOCUMENTOS ===================== -->
+      <div class="tab-panel" data-tab="documentos">
+        <div class="section-title">Protocolos do E-BRAT</div>
+        <p class="hint">Cada parte envolvida costuma registrar o próprio E-BRAT junto à PMERJ. Preencha os dois quando disponíveis.</p>
+        <div class="field-grid cols-2">
+          <div class="field mono"><label>Protocolo E-BRAT do terceiro</label><input type="text" name="documentacao.ebratTerceiro" placeholder="Ex.: 20260708000000073353"></div>
+          <div class="field mono"><label>Protocolo E-BRAT da Juanil</label><input type="text" name="documentacao.ebratJuanil" placeholder="Ex.: 20260715000000075782"></div>
+        </div>
+
+        <div class="section-title">Checklist e upload por categoria</div>
+        <p class="hint">Envie os arquivos escaneados/fotografados de cada documento. O status muda para "Recebido" automaticamente ao anexar pelo menos um arquivo na categoria.</p>
+        <div class="upload-grid" id="uploadGrid">
+          <!-- gerado via JS: ebrat, cnhCondutor, rg, cpf, comprovanteResidencia, crlv, orcamentosArquivos, fotosDanos, outros -->
+        </div>
+      </div>
+
+      <!-- ===================== 7. ORÇAMENTOS ===================== -->
+      <div class="tab-panel" data-tab="orcamentos">
+        <div class="section-title">Orçamentos de reparo</div>
+        <div id="listaOrcamentos"></div>
+        <button type="button" class="btn btn-outline btn-sm" id="btnAddOrcamento">+ Adicionar orçamento</button>
+      </div>
+
+      <!-- ===================== 8. STATUS ===================== -->
+      <div class="tab-panel" data-tab="status">
+        <div class="section-title">Status do processo</div>
+        <div class="field-grid cols-2">
+          <div class="field">
+            <label>Situação atual</label>
+            <select name="status">
+              <option value="aberto">Aberto</option>
+              <option value="juridico">Com o jurídico</option>
+              <option value="concluido">Concluído</option>
+            </select>
+          </div>
+          <div class="field mono"><label>Protocolo</label><input type="text" name="protocolo" id="campoProtocolo" readonly placeholder="gerado automaticamente ao salvar"></div>
+        </div>
+        <div class="field"><label>Resumo do status (aparece no topo do relatório)</label><input type="text" name="statusResumo" placeholder="Ex.: Documentação de ambas as partes completa — apto para o jurídico"></div>
+        <div class="section-title">Próximos passos</div>
+        <div id="listaPassos"></div>
+        <button type="button" class="btn btn-outline btn-sm" id="btnAddPasso">+ Adicionar item</button>
+      </div>
+
+      <div class="form-actions">
+        <span class="autosave-note" id="autosaveNote"></span>
+        <div style="display:flex;gap:10px;">
+          <a href="index.html" class="btn btn-ghost">Cancelar</a>
+          <button type="submit" class="btn btn-primary" id="btnSalvar">Salvar sinistro</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script type="module">
+  import {
+    protegerPagina, gerarProtocolo, getDoc, setDoc, updateDoc, doc, serverTimestamp,
+    SINISTROS_COL, uploadAnexo, removerAnexo, toast, escapeHtml
+  } from "./app-core.js";
+  import { COLLECTION } from "./firebase-config.js";
+
+  const params = new URLSearchParams(location.search);
+  const editId = params.get("id");
+  let anexos = []; // {nome, url, categoria, tamanho, path}
+  let docRef = null;
+
+  const CATEGORIAS = [
+    { key: "ebrat", label: "E-BRAT / E-DAT" },
+    { key: "cnhCondutor", label: "CNH do condutor" },
+    { key: "rg", label: "RG do proprietário" },
+    { key: "cpf", label: "CPF do proprietário" },
+    { key: "comprovanteResidencia", label: "Comprovante de residência" },
+    { key: "crlv", label: "CRLV atual" },
+    { key: "orcamentosArquivos", label: "Orçamentos formais (arquivos)" },
+    { key: "fotosDanos", label: "Fotos dos danos" },
+    { key: "outros", label: "Outros documentos" }
+  ];
+
+  /* ---------- Tabs ---------- */
+  document.getElementById("tabs").addEventListener("click", (e) => {
+    const btn = e.target.closest(".tab-btn");
+    if (!btn) return;
+    document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+    document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
+    btn.classList.add("active");
+    document.querySelector(`.tab-panel[data-tab="${btn.dataset.tab}"]`).classList.add("active");
+  });
+
+  /* ---------- Mostrar bloco de condutor distinto no terceiro ---------- */
+  document.querySelectorAll('input[name="veiculoTerceiro.proprietarioEhCondutor"]').forEach((r) => {
+    r.addEventListener("change", (e) => {
+      document.getElementById("blocoCondutorDistinto").style.display = e.target.value === "nao" ? "block" : "none";
+    });
+  });
+
+  /* ---------- Comunicações recebidas (repeater) ---------- */
+  function linhaComunicacao(c = {}) {
+    const div = document.createElement("div");
+    div.className = "repeater-item";
+    div.innerHTML = `
+      <button type="button" class="remove-item">×</button>
+      <div class="field-grid cols-3">
+        <div class="field"><label>Data</label><input type="date" class="c-data" value="${c.dataIso || ""}"></div>
+        <div class="field span-2"><label>Remetente</label><input type="text" class="c-remetente" value="${escapeHtml(c.remetente || "")}" placeholder="Ex.: Wandenir (terceiro)"></div>
+      </div>
+      <div class="field" style="margin-top:8px;"><label>Texto</label><textarea class="c-texto">${escapeHtml(c.texto || "")}</textarea></div>`;
+    div.querySelector(".remove-item").addEventListener("click", () => div.remove());
+    return div;
+  }
+  document.getElementById("btnAddComunicacao").addEventListener("click", () => {
+    document.getElementById("listaComunicacoes").appendChild(linhaComunicacao());
+  });
+
+  /* ---------- Testemunhas (repeater) ---------- */
+  function linhaTestemunha(t = {}) {
+    const div = document.createElement("div");
+    div.className = "repeater-item";
+    div.innerHTML = `
+      <button type="button" class="remove-item">×</button>
+      <div class="field-grid cols-3">
+        <div class="field"><label>Nome</label><input type="text" class="t-nome" value="${escapeHtml(t.nome || "")}"></div>
+        <div class="field mono"><label>CPF</label><input type="text" class="t-cpf" value="${escapeHtml(t.cpf || "")}"></div>
+        <div class="field"><label>Celular</label><input type="text" class="t-celular" value="${escapeHtml(t.celular || "")}"></div>
+      </div>`;
+    div.querySelector(".remove-item").addEventListener("click", () => div.remove());
+    return div;
+  }
+  document.getElementById("btnAddTestemunha").addEventListener("click", () => {
+    document.getElementById("listaTestemunhas").appendChild(linhaTestemunha());
+  });
+
+  /* ---------- Orçamentos (repeater) ---------- */
+  function linhaOrcamento(o = {}) {
+    const div = document.createElement("div");
+    div.className = "repeater-item";
+    div.innerHTML = `
+      <button type="button" class="remove-item">×</button>
+      <div class="field-grid cols-4">
+        <div class="field span-2"><label>Oficina</label><input type="text" class="o-oficina" value="${escapeHtml(o.oficina || "")}"></div>
+        <div class="field mono"><label>CNPJ <span class="cnpj-alerta" style="display:none;color:#B35C00;font-weight:700;">⚠ sem CNPJ — não conforme</span></label><input type="text" class="o-cnpj" value="${escapeHtml(o.cnpj || "")}" placeholder="Deixe em branco se não informado"></div>
+        <div class="field"><label>Data</label><input type="date" class="o-data" value="${o.dataIso || ""}"></div>
+        <div class="field"><label>Valor total (R$)</label><input type="number" step="0.01" class="o-valor" value="${o.valor || ""}"></div>
+      </div>`;
+    div.querySelector(".remove-item").addEventListener("click", () => div.remove());
+    const cnpjInput = div.querySelector(".o-cnpj");
+    const alerta = div.querySelector(".cnpj-alerta");
+    const checarCnpj = () => { alerta.style.display = cnpjInput.value.trim() ? "none" : "inline"; };
+    cnpjInput.addEventListener("input", checarCnpj);
+    checarCnpj();
+    return div;
+  }
+  document.getElementById("btnAddOrcamento").addEventListener("click", () => {
+    document.getElementById("listaOrcamentos").appendChild(linhaOrcamento());
+  });
+
+  /* ---------- Próximos passos (repeater simples) ---------- */
+  function linhaPasso(texto = "") {
+    const div = document.createElement("div");
+    div.className = "repeater-item";
+    div.style.padding = "8px 12px";
+    div.innerHTML = `
+      <button type="button" class="remove-item" style="top:6px;right:6px;">×</button>
+      <input type="text" class="p-texto" style="width:calc(100% - 30px);border:none;background:transparent;font-size:14px;" value="${escapeHtml(texto)}" placeholder="Descreva o próximo passo">`;
+    div.querySelector(".remove-item").addEventListener("click", () => div.remove());
+    return div;
+  }
+  document.getElementById("btnAddPasso").addEventListener("click", () => {
+    document.getElementById("listaPassos").appendChild(linhaPasso());
+  });
+
+  /* ---------- Upload de anexos por categoria ---------- */
+  function renderUploadGrid() {
+    const grid = document.getElementById("uploadGrid");
+    grid.innerHTML = CATEGORIAS.map((c) => {
+      const arquivosCat = anexos.filter((a) => a.categoria === c.key);
+      return `
+        <div class="dropzone" data-cat="${c.key}">
+          <div class="dz-head">
+            <span>${c.label}</span>
+            <span class="dz-status ${arquivosCat.length ? "ok" : "pend"}">${arquivosCat.length ? "Recebido" : "Pendente"}</span>
+          </div>
+          <input type="file" multiple data-cat="${c.key}">
+          <div class="progress-bar" style="display:none;"><i></i></div>
+          <div class="arquivos-lista">
+            ${arquivosCat.map((a) => `
+              <div class="file-chip" data-path="${a.path}">
+                <a href="${a.url}" target="_blank" rel="noopener">${escapeHtml(a.nome)}</a>
+                <button type="button" class="btn-remove-anexo" data-path="${a.path}">×</button>
+              </div>`).join("")}
+          </div>
+        </div>`;
+    }).join("");
+
+    grid.querySelectorAll('input[type="file"]').forEach((input) => {
+      input.addEventListener("change", async (e) => {
+        const cat = e.target.dataset.cat;
+        const dz = e.target.closest(".dropzone");
+        const bar = dz.querySelector(".progress-bar");
+        const barInner = bar.querySelector("i");
+        const protocolo = document.getElementById("campoProtocolo").value || (await garantirProtocolo());
+        for (const file of e.target.files) {
+          bar.style.display = "block";
+          try {
+            const anexo = await uploadAnexo(protocolo, cat, file, (pct) => { barInner.style.width = pct + "%"; });
+            anexos.push(anexo);
+            toast(`Arquivo "${file.name}" enviado.`, "ok");
+          } catch (err) {
+            console.error(err);
+            toast(`Falha ao enviar "${file.name}".`, "err");
+          }
+        }
+        bar.style.display = "none";
+        renderUploadGrid();
+      });
+    });
+
+    grid.querySelectorAll(".btn-remove-anexo").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const path = btn.dataset.path;
+        await removerAnexo(path);
+        anexos = anexos.filter((a) => a.path !== path);
+        renderUploadGrid();
+        toast("Anexo removido.");
+      });
+    });
+  }
+
+  async function garantirProtocolo() {
+    let protocolo = document.getElementById("campoProtocolo").value;
+    if (!protocolo) {
+      protocolo = await gerarProtocolo();
+      document.getElementById("campoProtocolo").value = protocolo;
+      document.getElementById("protocoloTag").textContent = protocolo;
+    }
+    return protocolo;
+  }
+
+  /* ---------- Preenche o form a partir de um objeto (edição) ---------- */
+  function setValorPorPath(root, path, valor) {
+    const parts = path.split(".");
+    let obj = root;
+    for (let i = 0; i < parts.length - 1; i++) {
+      obj = obj[parts[i]] = obj[parts[i]] || {};
+    }
+    obj[parts[parts.length - 1]] = valor;
+  }
+  function getValorPorPath(root, path) {
+    return path.split(".").reduce((o, k) => (o ? o[k] : undefined), root);
+  }
+
+  function preencherForm(data) {
+    document.querySelectorAll("#formSinistro [name]").forEach((el) => {
+      const val = getValorPorPath(data, el.name);
+      if (val === undefined || val === null) return;
+      if (el.type === "radio") {
+        el.checked = el.value === val;
+      } else {
+        el.value = val;
+      }
+    });
+    if (data.veiculoTerceiro?.proprietarioEhCondutor === "nao") {
+      document.getElementById("blocoCondutorDistinto").style.display = "block";
+    }
+    (data.testemunhas || []).forEach((t) => document.getElementById("listaTestemunhas").appendChild(linhaTestemunha(t)));
+    if (data.semTestemunhas) document.getElementById("semTestemunhas").checked = true;
+    (data.orcamentos || []).forEach((o) => document.getElementById("listaOrcamentos").appendChild(linhaOrcamento(o)));
+    (data.comunicacoes || []).forEach((c) => document.getElementById("listaComunicacoes").appendChild(linhaComunicacao(c)));
+    (data.proximosPassos || []).forEach((p) => document.getElementById("listaPassos").appendChild(linhaPasso(p)));
+    anexos = data.anexos || [];
+    renderUploadGrid();
+    if (data.protocolo) {
+      document.getElementById("campoProtocolo").value = data.protocolo;
+      document.getElementById("protocoloTag").textContent = data.protocolo;
+    }
+  }
+
+  /* ---------- Coleta os dados do form em um objeto ---------- */
+  function coletarForm() {
+    const data = {};
+    document.querySelectorAll("#formSinistro [name]").forEach((el) => {
+      if (el.type === "radio") {
+        if (el.checked) setValorPorPath(data, el.name, el.value);
+      } else {
+        setValorPorPath(data, el.name, el.value);
+      }
+    });
+    data.testemunhas = Array.from(document.querySelectorAll("#listaTestemunhas .repeater-item")).map((el) => ({
+      nome: el.querySelector(".t-nome").value,
+      cpf: el.querySelector(".t-cpf").value,
+      celular: el.querySelector(".t-celular").value
+    }));
+    data.semTestemunhas = document.getElementById("semTestemunhas").checked;
+    data.orcamentos = Array.from(document.querySelectorAll("#listaOrcamentos .repeater-item")).map((el) => ({
+      oficina: el.querySelector(".o-oficina").value,
+      cnpj: el.querySelector(".o-cnpj").value,
+      dataIso: el.querySelector(".o-data").value,
+      valor: el.querySelector(".o-valor").value
+    }));
+    data.comunicacoes = Array.from(document.querySelectorAll("#listaComunicacoes .repeater-item")).map((el) => ({
+      dataIso: el.querySelector(".c-data").value,
+      remetente: el.querySelector(".c-remetente").value,
+      texto: el.querySelector(".c-texto").value
+    })).filter((c) => c.texto.trim());
+    data.proximosPassos = Array.from(document.querySelectorAll("#listaPassos .repeater-item")).map((el) => el.querySelector(".p-texto").value).filter(Boolean);
+    data.anexos = anexos;
+    return data;
+  }
+
+  /* ---------- Carrega registro existente (modo edição) ---------- */
+  protegerPagina(async () => {
+    if (editId) {
+      docRef = doc(SINISTROS_COL, editId);
+      const snap = await getDoc(docRef);
+      if (snap.exists()) {
+        preencherForm(snap.data());
+      } else {
+        toast("Sinistro não encontrado.", "err");
+      }
+    } else {
+      renderUploadGrid();
+    }
+  });
+
+  /* ---------- Salvar ---------- */
+  document.getElementById("formSinistro").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById("btnSalvar");
+    btn.disabled = true;
+    btn.textContent = "Salvando...";
+    try {
+      const protocolo = await garantirProtocolo();
+      const data = coletarForm();
+      data.protocolo = protocolo;
+      data.atualizadoEm = serverTimestamp();
+
+      if (docRef) {
+        await updateDoc(docRef, data);
+      } else {
+        docRef = doc(SINISTROS_COL, protocolo);
+        data.criadoEm = serverTimestamp();
+        await setDoc(docRef, data);
+      }
+      toast("Sinistro salvo com sucesso.", "ok");
+      setTimeout(() => { location.href = `detalhe.html?id=${encodeURIComponent(docRef.id)}`; }, 700);
+    } catch (err) {
+      console.error(err);
+      toast("Erro ao salvar. Veja o console para detalhes.", "err");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Salvar sinistro";
+    }
+  });
+</script>
+</body>
+</html>

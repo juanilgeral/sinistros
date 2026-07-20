@@ -1,0 +1,18 @@
+rules_version = '2';
+
+// Sistema de Sinistros — Juanil Transportes Rodoviários
+// Só usuários autenticados podem enviar/baixar anexos.
+// Limite de 20MB por arquivo (fotos e documentos escaneados).
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /sinistros/{protocolo}/{categoria}/{arquivo} {
+      allow read, write: if request.auth != null
+                          && request.resource.size < 20 * 1024 * 1024;
+      allow delete: if request.auth != null;
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

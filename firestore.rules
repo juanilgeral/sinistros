@@ -1,0 +1,23 @@
+rules_version = '2';
+
+// Sistema de Sinistros — Juanil Transportes Rodoviários
+// Só usuários autenticados (cadastrados em Authentication) podem
+// ler ou gravar dados. Não há acesso público/anônimo.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /sinistros/{sinistroId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Contador usado para gerar o número de protocolo sequencial
+    match /contadores/{ano} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Bloqueia qualquer outra coleção por padrão
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
