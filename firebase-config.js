@@ -25,12 +25,12 @@
 // ============================================================
 
 export const firebaseConfig = {
-  apiKey: "COLOQUE_AQUI_SUA_API_KEY",
+  apiKey: "AIzaSyAvkKmzgmyYdX7AAMGY8N6xLj1YGaShS4U",
   authDomain: "juanil-sinistros.firebaseapp.com",
   projectId: "juanil-sinistros",
-  storageBucket: "juanil-sinistros.appspot.com",
-  messagingSenderId: "000000000000",
-  appId: "1:000000000000:web:xxxxxxxxxxxxxxxxxxxxxx"
+  storageBucket: "juanil-sinistros.firebasestorage.app",
+  messagingSenderId: "971922054731",
+  appId: "1:971922054731:web:63990db8c56a1b6cb5f7ce"
 };
 
 // Nome da coleção no Firestore onde os sinistros são gravados.
