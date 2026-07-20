@@ -25,16 +25,12 @@
     </form>
   </div>
 </div>
-
 <script type="module">
   import { auth, signInWithEmailAndPassword, onAuthStateChanged } from "./app-core.js";
-
   onAuthStateChanged(auth, (user) => { if (user) location.href = "index.html"; });
-
   const form = document.getElementById("loginForm");
   const erro = document.getElementById("loginError");
   const btn = document.getElementById("btnEntrar");
-
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     erro.style.display = "none";
@@ -48,7 +44,7 @@
       );
       location.href = "index.html";
     } catch (err) {
-      erro.textContent = "Não foi possível entrar. Confira o e-mail e a senha.";
+      erro.textContent = "Erro: " + err.code + " — " + err.message;
       erro.style.display = "block";
       btn.textContent = "Entrar";
       btn.disabled = false;
