@@ -23,9 +23,8 @@
 //    (um e-mail/senha para cada pessoa da empresa que vai acessar).
 //
 // ============================================================
-
 export const firebaseConfig = {
-  apiKey: "AIzaSyAvkKmzgmyYdX7AAMGY8N6xLj1YGaShS4U",
+  apiKey: "AIzaSyAvkKmzgmyYdX7AAMGY8N6xlj1YGaShS4U",
   authDomain: "juanil-sinistros.firebaseapp.com",
   projectId: "juanil-sinistros",
   storageBucket: "juanil-sinistros.firebasestorage.app",
