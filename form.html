@@ -261,17 +261,18 @@
 
       <!-- ===================== 6. DOCUMENTOS ===================== -->
       <div class="tab-panel" data-tab="documentos">
-        <div class="section-title">Protocolos do E-BRAT</div>
-        <p class="hint">Cada parte envolvida costuma registrar o próprio E-BRAT junto à PMERJ. Preencha os dois quando disponíveis.</p>
+        <div class="section-title">Protocolos do E-BRAT e DAT</div>
+        <p class="hint">Cada parte envolvida costuma registrar o próprio E-BRAT junto à PMERJ. A DAT (Declaração de Acidente de Trânsito) é feita à parte, pelo site da PRF (<a href="https://comunicante.prf.gov.br/declarante/declaracao" target="_blank" rel="noopener">comunicante.prf.gov.br</a>) — preencha quando disponível.</p>
         <div class="field-grid cols-2">
           <div class="field mono"><label>Protocolo E-BRAT do terceiro</label><input type="text" name="documentacao.ebratTerceiro" placeholder="Ex.: 20260708000000073353"></div>
           <div class="field mono"><label>Protocolo E-BRAT da Juanil</label><input type="text" name="documentacao.ebratJuanil" placeholder="Ex.: 20260715000000075782"></div>
+          <div class="field mono"><label>Protocolo DAT (PRF)</label><input type="text" name="documentacao.datProtocolo" placeholder="Nº da declaração emitida em comunicante.prf.gov.br"></div>
         </div>
 
         <div class="section-title">Checklist e upload por categoria</div>
         <p class="hint">Envie os arquivos escaneados/fotografados de cada documento. O status muda para "Recebido" automaticamente ao anexar pelo menos um arquivo na categoria.</p>
         <div class="upload-grid" id="uploadGrid">
-          <!-- gerado via JS: ebrat, cnhCondutor, rg, cpf, comprovanteResidencia, crlv, orcamentosArquivos, fotosDanos, outros -->
+          <!-- gerado via JS: ebrat, dat, cnhCondutor, rg, cpf, comprovanteResidencia, crlv, orcamentosArquivos, fotosDanos, outros -->
         </div>
       </div>
 
@@ -326,7 +327,8 @@
   let docRef = null;
 
   const CATEGORIAS = [
-    { key: "ebrat", label: "E-BRAT / E-DAT" },
+    { key: "ebrat", label: "E-BRAT" },
+    { key: "dat", label: "DAT (PRF)" },
     { key: "cnhCondutor", label: "CNH do condutor" },
     { key: "rg", label: "RG do proprietário" },
     { key: "cpf", label: "CPF do proprietário" },
