@@ -61,7 +61,8 @@
 
   function categoriaLabel(key) {
     return {
-      ebrat: "E-BRAT / E-DAT (registro oficial do acidente)",
+      ebrat: "E-BRAT (registro oficial do acidente)",
+      dat: "DAT — Declaração de Acidente de Trânsito (PRF)",
       cnhCondutor: "CNH do condutor",
       rg: "RG do proprietário",
       cpf: "CPF do proprietário",
@@ -266,10 +267,11 @@
           <table class="kv-table" style="margin-bottom:10px;">
             ${kv("Protocolo E-BRAT do terceiro", s.documentacao?.ebratTerceiro)}
             ${kv("Protocolo E-BRAT da Juanil", s.documentacao?.ebratJuanil)}
+            ${kv("Protocolo DAT (PRF)", s.documentacao?.datProtocolo)}
           </table>
           <table class="doc-table">
             <tr><th>Documento</th><th>Status</th></tr>
-            ${["ebrat","cnhCondutor","rg","cpf","comprovanteResidencia","crlv","orcamentosArquivos","fotosDanos"].map((k) => `
+            ${["ebrat","dat","cnhCondutor","rg","cpf","comprovanteResidencia","crlv","orcamentosArquivos","fotosDanos"].map((k) => `
               <tr><td>${categoriaLabel(k)}</td><td class="${categoriasComArquivo.has(k) ? "status-recebido" : "status-pendente"}">${categoriasComArquivo.has(k) ? "Recebido" : "Pendente"}</td></tr>
             `).join("")}
           </table>
