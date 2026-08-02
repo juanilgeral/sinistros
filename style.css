@@ -182,12 +182,13 @@ input,select,textarea{font-family:inherit;}
   border-radius:var(--radius);
   padding:16px 18px;
   display:grid;
-  grid-template-columns:auto 1.4fr 1fr 1fr auto;
+  grid-template-columns:auto 1.3fr 0.9fr 0.85fr 0.6fr auto;
   gap:18px;
   align-items:center;
   box-shadow:var(--shadow);
   transition:border-color .15s, transform .1s;
 }
+.card-processo .data-docs{display:flex;flex-direction:column;gap:5px;}
 .card-processo:hover{border-color:var(--azul-500);}
 .card-processo .veiculos{display:flex;flex-direction:column;gap:2px;}
 .card-processo .veiculos .placas{font-family:var(--mono);font-weight:700;font-size:14px;}

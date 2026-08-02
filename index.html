@@ -62,6 +62,18 @@
     render();
   }
 
+  function statusDocumento(sinistro, tipo) {
+    // tipo: "ebrat" ou "dat"
+    const doc = sinistro.documentacao || {};
+    const protocoloPreenchido = tipo === "ebrat"
+      ? !!(doc.ebratTerceiro || doc.ebratJuanil)
+      : !!doc.datProtocolo;
+    const temAnexo = (sinistro.anexos || []).some((a) => a.categoria === tipo);
+    const feito = protocoloPreenchido || temAnexo;
+    const rotulo = tipo === "ebrat" ? "E-BRAT" : "DAT (PRF)";
+    return `<span class="dz-status ${feito ? "ok" : "pend"}">${rotulo} ${feito ? "feito" : "pendente"}</span>`;
+  }
+
   function render() {
     const termo = document.getElementById("busca").value.trim().toLowerCase();
     const lista = document.getElementById("lista");
@@ -98,6 +110,10 @@
           <span class="partes">${s.veiculoJuanil?.condutor?.nome || "motorista não informado"} — vs — ${s.veiculoTerceiro?.proprietario?.nome || "terceiro não informado"}</span>
         </div>
         <div class="data"><b>${fmtData(s.ocorrencia?.data) || "—"}</b>${s.ocorrencia?.especifique || s.ocorrencia?.localTipo || ""}</div>
+        <div class="data-docs">
+          ${statusDocumento(s, "ebrat")}
+          ${statusDocumento(s, "dat")}
+        </div>
         <div class="data">${(s.anexos || []).length} anexo(s)</div>
         ${statusBadge(s.status)}
       </a>
