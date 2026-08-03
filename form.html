@@ -27,11 +27,19 @@
       <button class="tab-btn" data-tab="documentos">6. Documentos</button>
       <button class="tab-btn" data-tab="orcamentos">7. Orçamentos</button>
       <button class="tab-btn" data-tab="status">8. Status</button>
+      <button class="tab-btn" data-tab="cst">9. CST (PRF)</button>
     </div>
 
     <form id="formSinistro">
       <!-- ===================== 1. OCORRÊNCIA ===================== -->
       <div class="tab-panel active" data-tab="ocorrencia">
+        <div class="section-title">Qual declaração se aplica a este sinistro?</div>
+        <p class="hint">Marque uma ou as duas — E-BRAT é do estado (PMERJ), CST é da PRF (federal — Comunicação de Sinistro de Trânsito). Pode se aplicar mais de uma, dependendo de onde o acidente ocorreu.</p>
+        <div class="radio-row" style="padding-bottom:18px;">
+          <label><input type="checkbox" id="aplicaEbrat"> E-BRAT (estadual)</label>
+          <label><input type="checkbox" id="aplicaDat"> CST — PRF (federal)</label>
+        </div>
+
         <div class="section-title">Quando ocorreu o acidente</div>
         <div class="field-grid cols-2">
           <div class="field"><label>Data <span class="req">*</span></label><input type="date" name="ocorrencia.data" required></div>
@@ -261,12 +269,12 @@
 
       <!-- ===================== 6. DOCUMENTOS ===================== -->
       <div class="tab-panel" data-tab="documentos">
-        <div class="section-title">Protocolos do E-BRAT e DAT</div>
-        <p class="hint">Cada parte envolvida costuma registrar o próprio E-BRAT junto à PMERJ. A DAT (Declaração de Acidente de Trânsito) é feita à parte, pelo site da PRF (<a href="https://comunicante.prf.gov.br/declarante/declaracao" target="_blank" rel="noopener">comunicante.prf.gov.br</a>) — preencha quando disponível.</p>
+        <div class="section-title">Protocolos do E-BRAT e CST</div>
+        <p class="hint">Cada parte envolvida costuma registrar o próprio E-BRAT junto à PMERJ. A CST (Comunicação de Sinistro de Trânsito) é feita à parte, pelo site da PRF (<a href="https://comunicante.prf.gov.br/declarante/declaracao" target="_blank" rel="noopener">comunicante.prf.gov.br</a>) — preencha quando disponível.</p>
         <div class="field-grid cols-2">
           <div class="field mono"><label>Protocolo E-BRAT do terceiro</label><input type="text" name="documentacao.ebratTerceiro" placeholder="Ex.: 20260708000000073353"></div>
           <div class="field mono"><label>Protocolo E-BRAT da Juanil</label><input type="text" name="documentacao.ebratJuanil" placeholder="Ex.: 20260715000000075782"></div>
-          <div class="field mono"><label>Protocolo DAT (PRF)</label><input type="text" name="documentacao.datProtocolo" placeholder="Nº da declaração emitida em comunicante.prf.gov.br"></div>
+          <div class="field mono"><label>Protocolo CST (PRF)</label><input type="text" name="documentacao.datProtocolo" placeholder="Nº da comunicação emitida em comunicante.prf.gov.br"></div>
         </div>
 
         <div class="section-title">Checklist e upload por categoria</div>
@@ -303,6 +311,115 @@
         <button type="button" class="btn btn-outline btn-sm" id="btnAddPasso">+ Adicionar item</button>
       </div>
 
+      <div class="tab-panel" data-tab="cst">
+        <div class="section-title">Comunicante (CST — comunicante.prf.gov.br)</div>
+        <p class="hint">Preencha só se este sinistro precisar de CST (marcado na aba 1). Os dados aqui são os mesmos pedidos no formulário oficial da PRF, pra facilitar o preenchimento de lá.</p>
+        <div class="field">
+          <label>Relação com o veículo principal</label>
+          <div class="radio-row" style="flex-wrap:wrap;">
+            <label><input type="radio" name="cst.comunicante.relacao" value="condutor" checked> Condutor</label>
+            <label><input type="radio" name="cst.comunicante.relacao" value="corretor"> Corretor</label>
+            <label><input type="radio" name="cst.comunicante.relacao" value="proprietario"> Proprietário</label>
+            <label><input type="radio" name="cst.comunicante.relacao" value="passageiro"> Passageiro</label>
+            <label><input type="radio" name="cst.comunicante.relacao" value="condutorProprietario"> Condutor e Proprietário</label>
+            <label><input type="radio" name="cst.comunicante.relacao" value="terceiroAtingido"> Terceiro Atingido</label>
+          </div>
+        </div>
+        <div class="field" style="flex-direction:row;align-items:center;gap:8px;margin-top:10px;">
+          <input type="checkbox" id="cstEstrangeiro" style="width:auto;">
+          <label for="cstEstrangeiro" style="margin:0;">Estrangeiro?</label>
+        </div>
+        <div class="field-grid cols-4" style="margin-top:14px;">
+          <div class="field span-2"><label>Nome</label><input type="text" name="cst.comunicante.nome"></div>
+          <div class="field mono"><label>CPF</label><input type="text" name="cst.comunicante.cpf"></div>
+          <div class="field"><label>Profissão</label><input type="text" name="cst.comunicante.profissao"></div>
+          <div class="field"><label>Sexo</label>
+            <select name="cst.comunicante.sexo">
+              <option value="">— selecione —</option>
+              <option value="feminino">Feminino</option>
+              <option value="masculino">Masculino</option>
+            </select>
+          </div>
+          <div class="field"><label>Nascimento</label><input type="date" name="cst.comunicante.nascimento"></div>
+          <div class="field span-2"><label>E-mail</label><input type="email" name="cst.comunicante.email"></div>
+          <div class="field"><label>Celular</label><input type="text" name="cst.comunicante.celular"></div>
+        </div>
+        <div class="field-grid cols-4" style="margin-top:6px;">
+          <div class="field"><label>CEP</label><input type="text" name="cst.comunicante.endereco.cep"></div>
+          <div class="field span-2"><label>Logradouro</label><input type="text" name="cst.comunicante.endereco.logradouro"></div>
+          <div class="field"><label>Número</label><input type="text" name="cst.comunicante.endereco.numero"></div>
+          <div class="field"><label>Complemento</label><input type="text" name="cst.comunicante.endereco.complemento"></div>
+          <div class="field"><label>Bairro/Localidade</label><input type="text" name="cst.comunicante.endereco.bairro"></div>
+          <div class="field"><label>Cidade</label><input type="text" name="cst.comunicante.endereco.cidade"></div>
+          <div class="field"><label>UF</label><input type="text" name="cst.comunicante.endereco.uf" maxlength="2"></div>
+        </div>
+
+        <div class="section-title">Localização na rodovia federal</div>
+        <div class="field-grid cols-4">
+          <div class="field"><label>UF</label><input type="text" name="cst.rodovia.uf" maxlength="2"></div>
+          <div class="field"><label>Cidade</label><input type="text" name="cst.rodovia.cidade"></div>
+          <div class="field"><label>BR</label><input type="text" name="cst.rodovia.br" placeholder="Ex.: 040"></div>
+          <div class="field"><label>KM</label><input type="text" name="cst.rodovia.km"></div>
+        </div>
+        <div class="field"><label>Trecho</label><input type="text" name="cst.rodovia.trecho"></div>
+
+        <div class="section-title">Condições do local (CST)</div>
+        <div class="field-grid cols-4">
+          <div class="field"><label>Condições da via</label>
+            <select name="cst.condicoesVia">
+              <option value="">— selecione —</option>
+              <option value="seca">Seca</option>
+              <option value="molhada">Molhada</option>
+              <option value="oleosa">Oleosa</option>
+              <option value="enlameada">Enlameada</option>
+              <option value="emObras">Em obras</option>
+            </select>
+          </div>
+          <div class="field"><label>Sinalização (pinturas e placas)</label>
+            <select name="cst.sinalizacao">
+              <option value="">— selecione —</option>
+              <option value="existenteVisivel">Existente e visível</option>
+              <option value="existenteApagada">Existente, mas apagada</option>
+              <option value="inexistente">Inexistente</option>
+            </select>
+          </div>
+          <div class="field"><label>Traçado da via</label>
+            <select name="cst.tracadoVia">
+              <option value="reta">Reta</option>
+              <option value="curva">Curva</option>
+              <option value="cruzamento">Cruzamento</option>
+              <option value="rotatoria">Rotatória</option>
+              <option value="viaduto">Viaduto/Ponte</option>
+            </select>
+          </div>
+          <div class="field"><label>Condições meteorológicas</label>
+            <select name="cst.condicoesMeteorologicas">
+              <option value="">— selecione —</option>
+              <option value="bomTempo">Bom tempo</option>
+              <option value="chuva">Chuva</option>
+              <option value="neblina">Neblina/Cerração</option>
+              <option value="vento">Vento forte</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="section-title">Tipo de sinistro (CST)</div>
+        <div class="radio-row" style="flex-wrap:wrap;">
+          <label><input type="radio" name="cst.tipoSinistro" value="danosEventuais" checked> Danos Eventuais</label>
+          <label><input type="radio" name="cst.tipoSinistro" value="atropelamentoAnimal"> Atropelamento de Animal</label>
+          <label><input type="radio" name="cst.tipoSinistro" value="colisaoFrontal"> Colisão Frontal</label>
+          <label><input type="radio" name="cst.tipoSinistro" value="colisaoLateral"> Colisão Lateral</label>
+          <label><input type="radio" name="cst.tipoSinistro" value="colisaoTraseira"> Colisão Traseira</label>
+          <label><input type="radio" name="cst.tipoSinistro" value="colisaoTransversal"> Colisão Transversal</label>
+          <label><input type="radio" name="cst.tipoSinistro" value="colisaoObjetoEstatico"> Colisão com Objeto Estático</label>
+          <label><input type="radio" name="cst.tipoSinistro" value="colisaoObjetoMovel"> Colisão com Objeto Móvel</label>
+          <label><input type="radio" name="cst.tipoSinistro" value="derramamentoCarga"> Derramamento de Carga</label>
+          <label><input type="radio" name="cst.tipoSinistro" value="saidaPista"> Saída de Pista</label>
+          <label><input type="radio" name="cst.tipoSinistro" value="tombamento"> Tombamento</label>
+          <label><input type="radio" name="cst.tipoSinistro" value="engavetamento"> Engavetamento</label>
+        </div>
+      </div>
+
       <div class="form-actions">
         <span class="autosave-note" id="autosaveNote"></span>
         <div style="display:flex;gap:10px;">
@@ -323,12 +440,16 @@
 
   const params = new URLSearchParams(location.search);
   const editId = params.get("id");
+  if (!editId) {
+    if (params.get("ebrat") === "1") document.getElementById("aplicaEbrat").checked = true;
+    if (params.get("dat") === "1") document.getElementById("aplicaDat").checked = true;
+  }
   let anexos = []; // {nome, url, categoria, tamanho, path}
   let docRef = null;
 
   const CATEGORIAS = [
     { key: "ebrat", label: "E-BRAT" },
-    { key: "dat", label: "DAT (PRF)" },
+    { key: "dat", label: "CST (PRF)" },
     { key: "cnhCondutor", label: "CNH do condutor" },
     { key: "rg", label: "RG do proprietário" },
     { key: "cpf", label: "CPF do proprietário" },
@@ -526,6 +647,9 @@
     }
     (data.testemunhas || []).forEach((t) => document.getElementById("listaTestemunhas").appendChild(linhaTestemunha(t)));
     if (data.semTestemunhas) document.getElementById("semTestemunhas").checked = true;
+    if (data.documentacao?.aplicaEbrat) document.getElementById("aplicaEbrat").checked = true;
+    if (data.documentacao?.aplicaDat) document.getElementById("aplicaDat").checked = true;
+    if (data.cst?.comunicante?.estrangeiro) document.getElementById("cstEstrangeiro").checked = true;
     (data.orcamentos || []).forEach((o) => document.getElementById("listaOrcamentos").appendChild(linhaOrcamento(o)));
     (data.comunicacoes || []).forEach((c) => document.getElementById("listaComunicacoes").appendChild(linhaComunicacao(c)));
     (data.proximosPassos || []).forEach((p) => document.getElementById("listaPassos").appendChild(linhaPasso(p)));
@@ -553,6 +677,12 @@
       celular: el.querySelector(".t-celular").value
     }));
     data.semTestemunhas = document.getElementById("semTestemunhas").checked;
+    if (!data.documentacao) data.documentacao = {};
+    data.documentacao.aplicaEbrat = document.getElementById("aplicaEbrat").checked;
+    data.documentacao.aplicaDat = document.getElementById("aplicaDat").checked;
+    if (!data.cst) data.cst = {};
+    if (!data.cst.comunicante) data.cst.comunicante = {};
+    data.cst.comunicante.estrangeiro = document.getElementById("cstEstrangeiro").checked;
     data.orcamentos = Array.from(document.querySelectorAll("#listaOrcamentos .repeater-item")).map((el) => ({
       oficina: el.querySelector(".o-oficina").value,
       cnpj: el.querySelector(".o-cnpj").value,

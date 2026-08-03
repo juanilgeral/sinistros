@@ -62,7 +62,7 @@
   function categoriaLabel(key) {
     return {
       ebrat: "E-BRAT (registro oficial do acidente)",
-      dat: "DAT — Declaração de Acidente de Trânsito (PRF)",
+      dat: "CST — Comunicação de Sinistro de Trânsito (PRF)",
       cnhCondutor: "CNH do condutor",
       rg: "RG do proprietário",
       cpf: "CPF do proprietário",
@@ -78,6 +78,7 @@
     const o = s.ocorrencia || {}, end = o.endereco || {}, cond = o.condicoes || {};
     const vj = s.veiculoJuanil || {}, emp = vj.empresa || {}, cJ = vj.condutor || {}, endCJ = cJ.endereco || {};
     const vt = s.veiculoTerceiro || {}, prop = vt.proprietario || {}, endProp = prop.endereco || {};
+    const cst = s.cst || {}, cstCom = cst.comunicante || {}, cstEnd = cstCom.endereco || {}, cstRod = cst.rodovia || {};
     const det = s.detalhes || {};
     const testemunhas = s.testemunhas || [];
     const orcamentos = (s.orcamentos || []).map(o => ({ ...o, valorNum: parseFloat(o.valor) || 0 }));
@@ -267,7 +268,7 @@
           <table class="kv-table" style="margin-bottom:10px;">
             ${kv("Protocolo E-BRAT do terceiro", s.documentacao?.ebratTerceiro)}
             ${kv("Protocolo E-BRAT da Juanil", s.documentacao?.ebratJuanil)}
-            ${kv("Protocolo DAT (PRF)", s.documentacao?.datProtocolo)}
+            ${kv("Protocolo CST (PRF)", s.documentacao?.datProtocolo)}
           </table>
           <table class="doc-table">
             <tr><th>Documento</th><th>Status</th></tr>
@@ -309,6 +310,39 @@
           <h2>8. Status do Processo e Próximos Passos</h2>
           ${passos.length ? `<ul class="rpt-narrative">${passos.map(p => `<li>${escapeHtmlLocal(p)}</li>`).join("")}</ul>` : `<p class="rpt-narrative">Nenhum próximo passo cadastrado.</p>`}
         </div>
+
+        ${s.documentacao?.aplicaDat ? `
+        <div class="rpt-section">
+          <h2>9. CST — Comunicação de Sinistro de Trânsito (PRF)</h2>
+          <h3>Comunicante</h3>
+          <table class="kv-table">
+            ${kv("Relação com o veículo principal", ({condutor:"Condutor",corretor:"Corretor",proprietario:"Proprietário",passageiro:"Passageiro",condutorProprietario:"Condutor e Proprietário",terceiroAtingido:"Terceiro Atingido"})[cstCom.relacao] || cstCom.relacao)}
+            ${kv("Estrangeiro", cstCom.estrangeiro ? "Sim" : "Não")}
+            ${kv("Nome", cstCom.nome)}
+            ${kv("CPF", cstCom.cpf)}
+            ${kv("Profissão", cstCom.profissao)}
+            ${kv("Sexo", cstCom.sexo === "feminino" ? "Feminino" : cstCom.sexo === "masculino" ? "Masculino" : cstCom.sexo)}
+            ${kv("Nascimento", fmtData(cstCom.nascimento))}
+            ${kv("E-mail", cstCom.email)}
+            ${kv("Celular", cstCom.celular)}
+            ${kv("Endereço", [cstEnd.logradouro, cstEnd.numero, cstEnd.bairro, cstEnd.cidade, cstEnd.uf].filter(Boolean).join(", "))}
+          </table>
+          <h3>Localização na rodovia federal</h3>
+          <table class="kv-table">
+            ${kv("UF / Cidade", [cstRod.uf, cstRod.cidade].filter(Boolean).join(" / "))}
+            ${kv("BR / KM", [cstRod.br ? "BR-"+cstRod.br : "", cstRod.km ? "Km "+cstRod.km : ""].filter(Boolean).join(" — "))}
+            ${kv("Trecho", cstRod.trecho)}
+          </table>
+          <h3>Condições e tipo de sinistro</h3>
+          <table class="kv-table">
+            ${kv("Condições da via", cst.condicoesVia)}
+            ${kv("Sinalização", cst.sinalizacao)}
+            ${kv("Traçado da via", cst.tracadoVia)}
+            ${kv("Condições meteorológicas", cst.condicoesMeteorologicas)}
+            ${kv("Tipo de sinistro", ({danosEventuais:"Danos Eventuais",atropelamentoAnimal:"Atropelamento de Animal",colisaoFrontal:"Colisão Frontal",colisaoLateral:"Colisão Lateral",colisaoTraseira:"Colisão Traseira",colisaoTransversal:"Colisão Transversal",colisaoObjetoEstatico:"Colisão com Objeto Estático",colisaoObjetoMovel:"Colisão com Objeto Móvel",derramamentoCarga:"Derramamento de Carga",saidaPista:"Saída de Pista",tombamento:"Tombamento",engavetamento:"Engavetamento"})[cst.tipoSinistro] || cst.tipoSinistro)}
+          </table>
+          <p class="rpt-note">Dados de apoio pro preenchimento em comunicante.prf.gov.br — não substituem a comunicação oficial.</p>
+        </div>` : ""}
 
         ${fotos.length ? `
         <div class="rpt-section">
