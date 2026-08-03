@@ -27,6 +27,7 @@
       <button class="chip" data-status="juridico">Com o jurídico</button>
       <button class="chip" data-status="concluido">Concluído</button>
     </div>
+    <button type="button" class="btn btn-outline" id="btnModeloEmail">✉️ Modelo de e-mail</button>
     <button type="button" class="btn btn-primary" id="btnNovoSinistro">+ Novo Sinistro</button>
   </div>
 
@@ -38,6 +39,19 @@
     <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12h6M9 16h6M9 8h6M5 4h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z"/></svg>
     <h3>Nenhum processo encontrado</h3>
     <p>Ajuste a busca ou cadastre um novo sinistro.</p>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalEmail">
+  <div class="modal-box modal-box-wide">
+    <h3>Modelo de e-mail — Solicitação de Documentos</h3>
+    <p class="hint">Copie o texto abaixo e cole no e-mail pra outra parte envolvida no incidente.</p>
+    <textarea id="textoModeloEmail" class="modelo-email-textarea" readonly></textarea>
+    <p class="modal-copiado" id="modalCopiadoMsg" style="display:none;">✅ Copiado!</p>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" id="modalEmailFechar">Fechar</button>
+      <button type="button" class="btn btn-primary" id="modalEmailCopiar">📋 Copiar texto</button>
+    </div>
   </div>
 </div>
 
@@ -144,6 +158,63 @@
     btn.classList.add("active");
     statusAtivo = btn.dataset.status;
     render();
+  });
+
+  /* ---------- Modal: modelo de e-mail ---------- */
+  const TEMPLATE_EMAIL = `INCIDENTE DE TRÂNSITO:
+Prezado(a),
+Agradecemos o contato e confirmamos o recebimento das informações iniciais e das fotos referentes ao incidente.
+Conforme nosso procedimento padrão, para dar andamento ao processo completo de avaliação e reparo, toda a documentação será encaminhada ao departamento jurídico para análise.
+Caso seja verificada a procedência e o direito ao reparo após essa avaliação, enviaremos um termo de acordo formalizando o processo.
+De imediato, solicitamos o envio dos seguintes documentos obrigatórios:
+
+1. Registro Oficial do Acidente:
+E-BRAT da Polícia Militar,
+ou, para rodovia federal: E-DAT
+
+2. Documentação Pessoal:
+Cópia da CNH do condutor envolvido.
+Cópia do RG e CPF do proprietário do veículo.
+Comprovante de residência atual (conta de água, luz ou telefone fixo) de ambos.
+
+3. Documentação do Veículo:
+Cópia do CRLV atual.
+Para veículo de empresa: Cópia do Contrato Social atualizado e identificação (RG/CPF) dos sócios.
+
+4. Documentação Técnica (Para Instrução do Processo):
+Fotos detalhadas e amplas dos danos (as iniciais já foram recebidas, mas complemente se necessário).
+TRÊS ORÇAMENTOS FORMAIS para o reparo, emitidos por oficinas com CNPJ ativo e válido. Estes são obrigatórios para a composição do nosso processo de avaliação de custos. Caso já tenha enviado, desconsiderar.
+
+Importante: O processo de análise só poderá ser concluído após o recebimento de TODO o conjunto documental listado acima. A falta de qualquer item, inclusive os três orçamentos, impossibilita a finalização da avaliação e a definição das próximas etapas.
+
+Forma de envio: Encaminhe todos os documentos digitalizados em resposta a este e-mail.
+
+Agradecemos pela colaboração para uma resolução ágil.
+
+Atenciosamente,
+Ekland Santos
+Operacional
+Juanil Transportes Rodoviários
+Fone: 21 2667-9840 / 97269-0650(vivo)
+E-mail: operacional@juanil.com.br`;
+
+  const modalEmail = document.getElementById("modalEmail");
+  document.getElementById("btnModeloEmail").addEventListener("click", () => {
+    document.getElementById("textoModeloEmail").value = TEMPLATE_EMAIL;
+    document.getElementById("modalCopiadoMsg").style.display = "none";
+    modalEmail.classList.add("show");
+  });
+  document.getElementById("modalEmailFechar").addEventListener("click", () => modalEmail.classList.remove("show"));
+  modalEmail.addEventListener("click", (e) => { if (e.target === modalEmail) modalEmail.classList.remove("show"); });
+  document.getElementById("modalEmailCopiar").addEventListener("click", async () => {
+    const texto = document.getElementById("textoModeloEmail");
+    try {
+      await navigator.clipboard.writeText(texto.value);
+    } catch (e) {
+      texto.select();
+      document.execCommand("copy");
+    }
+    document.getElementById("modalCopiadoMsg").style.display = "block";
   });
 
   /* ---------- Modal: qual declaração se aplica ---------- */
