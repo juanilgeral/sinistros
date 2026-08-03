@@ -27,7 +27,7 @@
       <button class="tab-btn" data-tab="documentos">6. Documentos</button>
       <button class="tab-btn" data-tab="orcamentos">7. Orçamentos</button>
       <button class="tab-btn" data-tab="status">8. Status</button>
-      <button class="tab-btn" data-tab="cst">9. CST (PRF)</button>
+      <button class="tab-btn" data-tab="cst" id="tabBtnCst" style="display:none;">CST — Informações Gerais</button>
     </div>
 
     <form id="formSinistro">
@@ -444,6 +444,21 @@
     if (params.get("ebrat") === "1") document.getElementById("aplicaEbrat").checked = true;
     if (params.get("dat") === "1") document.getElementById("aplicaDat").checked = true;
   }
+
+  function atualizarVisibilidadeAbaCst() {
+    const marcado = document.getElementById("aplicaDat").checked;
+    const tabBtn = document.getElementById("tabBtnCst");
+    tabBtn.style.display = marcado ? "" : "none";
+    if (!marcado && tabBtn.classList.contains("active")) {
+      // Se a aba CST estava aberta e o CST foi desmarcado, volta pra aba 1
+      tabBtn.classList.remove("active");
+      document.querySelector('.tab-btn[data-tab="ocorrencia"]').classList.add("active");
+      document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
+      document.querySelector('.tab-panel[data-tab="ocorrencia"]').classList.add("active");
+    }
+  }
+  document.getElementById("aplicaDat").addEventListener("change", atualizarVisibilidadeAbaCst);
+  atualizarVisibilidadeAbaCst();
   let anexos = []; // {nome, url, categoria, tamanho, path}
   let docRef = null;
 
@@ -649,6 +664,7 @@
     if (data.semTestemunhas) document.getElementById("semTestemunhas").checked = true;
     if (data.documentacao?.aplicaEbrat) document.getElementById("aplicaEbrat").checked = true;
     if (data.documentacao?.aplicaDat) document.getElementById("aplicaDat").checked = true;
+    atualizarVisibilidadeAbaCst();
     if (data.cst?.comunicante?.estrangeiro) document.getElementById("cstEstrangeiro").checked = true;
     (data.orcamentos || []).forEach((o) => document.getElementById("listaOrcamentos").appendChild(linhaOrcamento(o)));
     (data.comunicacoes || []).forEach((c) => document.getElementById("listaComunicacoes").appendChild(linhaComunicacao(c)));

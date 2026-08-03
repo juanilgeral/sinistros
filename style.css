@@ -381,6 +381,22 @@ table.doc-table tr:nth-child(even) td{background:#FAFBFC;}
 .login-card .btn{width:100%;justify-content:center;margin-top:6px;}
 .login-error{background:var(--vermelho-bg);color:var(--vermelho);font-size:12.5px;padding:9px 12px;border-radius:7px;margin-bottom:14px;display:none;}
 
+/* ---------- Modal ---------- */
+.modal-overlay{
+  display:none;
+  position:fixed;inset:0;z-index:200;
+  background:rgba(20,40,61,.45);
+  align-items:center;justify-content:center;
+}
+.modal-overlay.show{display:flex;}
+.modal-box{
+  background:#fff;border-radius:12px;padding:26px 28px;
+  width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.3);
+}
+.modal-box h3{margin:0 0 6px;font-size:17px;color:var(--azul-900);}
+.modal-erro{color:var(--vermelho);font-size:12.5px;margin:4px 0 0;}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;}
+
 /* ---------- Toast ---------- */
 .toast{
   position:fixed;bottom:24px;right:24px;
