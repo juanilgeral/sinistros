@@ -45,7 +45,7 @@ input,select,textarea{font-family:inherit;}
 .topbar{
   background:var(--azul-900);
   color:#fff;
-  padding:14px 24px;
+  padding:16px 24px;
   display:flex;
   align-items:center;
   justify-content:space-between;
@@ -57,15 +57,32 @@ input,select,textarea{font-family:inherit;}
 .topbar .brand{
   display:flex;
   align-items:center;
-  gap:10px;
+  gap:14px;
   font-weight:700;
   letter-spacing:.2px;
 }
 .topbar .brand .brand-logo{
-  height:34px;
+  height:46px;
   width:auto;
   display:block;
-  border-radius:4px;
+  border-radius:5px;
+}
+.topbar .brand-text{
+  display:flex;
+  flex-direction:column;
+  line-height:1.2;
+}
+.topbar .brand-title{
+  font-size:20px;
+  font-weight:800;
+  letter-spacing:.2px;
+  color:#fff;
+}
+.topbar .brand-sub{
+  font-size:12px;
+  font-weight:500;
+  color:#9FB3C8;
+  letter-spacing:.3px;
 }
 .topbar .brand .tag{
   font-family:var(--mono);

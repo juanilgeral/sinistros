@@ -9,7 +9,13 @@
 <body>
 
 <div class="topbar">
-  <div class="brand"><img src="logo.jpg" alt="Juanil" class="brand-logo"> <span class="tag">SINISTROS</span></div>
+  <div class="brand">
+    <img src="logo.jpg" alt="Juanil" class="brand-logo">
+    <div class="brand-text">
+      <span class="brand-title">Sinistros Internos</span>
+      <span class="brand-sub">Juanil Transportes Rodoviários</span>
+    </div>
+  </div>
   <div class="user">
     <span id="protocoloTag"></span>
     <a href="index.html" class="btn btn-ghost btn-sm" style="color:#fff;">← Voltar</a>
@@ -461,6 +467,8 @@
   atualizarVisibilidadeAbaCst();
   let anexos = []; // {nome, url, categoria, tamanho, path}
   let docRef = null;
+  let sujo = false;
+  let salvando = false;
 
   const CATEGORIAS = [
     { key: "ebrat", label: "E-BRAT" },
@@ -476,6 +484,8 @@
   ];
 
   /* ---------- Tabs ---------- */
+  document.getElementById("formSinistro").addEventListener("input", () => { sujo = true; });
+  document.getElementById("formSinistro").addEventListener("change", () => { sujo = true; });
   document.getElementById("tabs").addEventListener("click", (e) => {
     const btn = e.target.closest(".tab-btn");
     if (!btn) return;
@@ -483,6 +493,7 @@
     document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
     btn.classList.add("active");
     document.querySelector(`.tab-panel[data-tab="${btn.dataset.tab}"]`).classList.add("active");
+    autosave();
   });
 
   /* ---------- Mostrar bloco de condutor distinto no terceiro ---------- */
@@ -602,6 +613,7 @@
           try {
             const anexo = await uploadAnexo(protocolo, cat, file, (pct) => { barInner.style.width = pct + "%"; });
             anexos.push(anexo);
+            sujo = true;
             toast(`Arquivo "${file.name}" enviado.`, "ok");
           } catch (err) {
             console.error(err);
@@ -610,6 +622,10 @@
         }
         bar.style.display = "none";
         renderUploadGrid();
+        // Salva a lista de anexos no Firestore imediatamente, para que um
+        // arquivo já enviado nunca fique "solto" caso a página seja fechada
+        // antes de clicar em "Salvar sinistro".
+        salvarAgora(false);
       });
     });
 
@@ -620,6 +636,7 @@
         anexos = anexos.filter((a) => a.path !== path);
         renderUploadGrid();
         toast("Anexo removido.");
+        salvarAgora(false);
       });
     });
   }
@@ -722,6 +739,7 @@
       const snap = await getDoc(docRef);
       if (snap.exists()) {
         preencherForm(snap.data());
+        sujo = false;
       } else {
         toast("Sinistro não encontrado.", "err");
       }
@@ -730,12 +748,10 @@
     }
   });
 
-  /* ---------- Salvar ---------- */
-  document.getElementById("formSinistro").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const btn = document.getElementById("btnSalvar");
-    btn.disabled = true;
-    btn.textContent = "Salvando...";
+  /* ---------- Salvar (manual e automático usam a mesma função) ---------- */
+  async function salvarAgora(mostrarToast) {
+    if (salvando) return false;
+    salvando = true;
     try {
       const protocolo = await garantirProtocolo();
       const data = coletarForm();
@@ -747,18 +763,57 @@
       } else {
         docRef = doc(SINISTROS_COL, protocolo);
         data.criadoEm = serverTimestamp();
-        await setDoc(docRef, data);
+        await setDoc(docRef, data, { merge: true });
       }
-      toast("Sinistro salvo com sucesso.", "ok");
-      setTimeout(() => { location.href = `detalhe.html?id=${encodeURIComponent(docRef.id)}`; }, 700);
+      sujo = false;
+      const agora = new Date();
+      const hora = agora.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+      document.getElementById("autosaveNote").textContent = "Salvo automaticamente às " + hora;
+      if (mostrarToast) toast("Sinistro salvo com sucesso.", "ok");
+      return true;
     } catch (err) {
       console.error(err);
-      toast("Erro ao salvar. Veja o console para detalhes.", "err");
+      if (mostrarToast) toast("Erro ao salvar. Veja o console para detalhes.", "err");
+      return false;
     } finally {
-      btn.disabled = false;
-      btn.textContent = "Salvar sinistro";
+      salvando = false;
+    }
+  }
+
+  // Só salva sozinho se algo mudou desde o último salvamento — evita
+  // criar registros vazios só por ter aberto o formulário.
+  async function autosave() {
+    if (!sujo) return;
+    await salvarAgora(false);
+  }
+
+  // Rede de segurança: salva a cada 40s se houver alteração pendente,
+  // e também ao trocar de aba do navegador ou fechar/minimizar a janela.
+  setInterval(autosave, 40000);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") autosave();
+  });
+  window.addEventListener("beforeunload", (e) => {
+    if (sujo) {
+      autosave();
+      e.preventDefault();
+      e.returnValue = "";
     }
   });
+
+  document.getElementById("formSinistro").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById("btnSalvar");
+    btn.disabled = true;
+    btn.textContent = "Salvando...";
+    const ok = await salvarAgora(true);
+    btn.disabled = false;
+    btn.textContent = "Salvar sinistro";
+    if (ok) {
+      setTimeout(() => { location.href = `detalhe.html?id=${encodeURIComponent(docRef.id)}`; }, 700);
+    }
+  });
+
 </script>
 </body>
 </html>
