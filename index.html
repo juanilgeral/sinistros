@@ -98,16 +98,19 @@
     render();
   }
 
-  function statusDocumento(sinistro, tipo) {
-    // tipo: "ebrat" ou "dat"
+  function statusRegistroOficial(sinistro) {
+    // E-BRAT (PMERJ) e CST/PRF são alternativos, não obrigatórios os dois —
+    // depende de o acidente ter ocorrido em via estadual/municipal ou rodovia
+    // federal. Só mostra "pendente" se NENHUM dos dois foi feito.
     const doc = sinistro.documentacao || {};
-    const protocoloPreenchido = tipo === "ebrat"
-      ? !!(doc.ebratTerceiro || doc.ebratJuanil)
-      : !!doc.datProtocolo;
-    const temAnexo = (sinistro.anexos || []).some((a) => a.categoria === tipo);
-    const feito = protocoloPreenchido || temAnexo;
-    const rotulo = tipo === "ebrat" ? "E-BRAT" : "CST (PRF)";
-    return `<span class="dz-status ${feito ? "ok" : "pend"}">${rotulo} ${feito ? "feito" : "pendente"}</span>`;
+    const anexos = sinistro.anexos || [];
+    const ebratFeito = !!(doc.ebratTerceiro || doc.ebratJuanil) || anexos.some((a) => a.categoria === "ebrat");
+    const datFeito = !!doc.datProtocolo || anexos.some((a) => a.categoria === "dat");
+
+    if (ebratFeito && datFeito) return `<span class="dz-status ok">E-BRAT + CST (PRF) feitos</span>`;
+    if (ebratFeito) return `<span class="dz-status ok">E-BRAT feito</span>`;
+    if (datFeito) return `<span class="dz-status ok">CST (PRF) feito</span>`;
+    return `<span class="dz-status pend">Registro oficial pendente (E-BRAT ou CST)</span>`;
   }
 
   function render() {
@@ -144,11 +147,11 @@
         <div class="veiculos">
           <span class="placas">${s.veiculoJuanil?.placa || "—"} × ${s.veiculoTerceiro?.placa || "—"}</span>
           <span class="partes">${s.veiculoJuanil?.condutor?.nome || "motorista não informado"} — vs — ${s.veiculoTerceiro?.proprietario?.nome || "terceiro não informado"}</span>
+          <span class="partes">Lançado por: ${s.criadoPorEmail || "não informado"}</span>
         </div>
         <div class="data"><b>${fmtData(s.ocorrencia?.data) || "—"}</b>${s.ocorrencia?.especifique || s.ocorrencia?.localTipo || ""}</div>
         <div class="data-docs">
-          ${statusDocumento(s, "ebrat")}
-          ${statusDocumento(s, "dat")}
+          ${statusRegistroOficial(s)}
         </div>
         <div class="data">${(s.anexos || []).length} anexo(s)</div>
         ${statusBadge(s.status)}

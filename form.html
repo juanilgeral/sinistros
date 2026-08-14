@@ -284,7 +284,7 @@
         </div>
 
         <div class="section-title">Checklist e upload por categoria</div>
-        <p class="hint">Envie os arquivos escaneados/fotografados de cada documento. O status muda para "Recebido" automaticamente ao anexar pelo menos um arquivo na categoria.</p>
+        <p class="hint">Envie os arquivos escaneados/fotografados de cada documento. O status muda para "Recebido" automaticamente ao anexar pelo menos um arquivo na categoria. <b>Limite: 250MB por arquivo</b> (cabem vídeos curtos, não só fotos e PDFs).</p>
         <div class="upload-grid" id="uploadGrid">
           <!-- gerado via JS: ebrat, dat, cnhCondutor, rg, cpf, comprovanteResidencia, crlv, orcamentosArquivos, fotosDanos, outros -->
         </div>
@@ -440,7 +440,7 @@
 <script type="module">
   import {
     protegerPagina, gerarProtocolo, getDoc, setDoc, updateDoc, doc, serverTimestamp,
-    SINISTROS_COL, uploadAnexo, removerAnexo, toast, escapeHtml
+    SINISTROS_COL, uploadAnexo, removerAnexo, toast, escapeHtml, auth
   } from "./app-core.js";
   import { COLLECTION } from "./firebase-config.js";
 
@@ -469,6 +469,10 @@
   let docRef = null;
   let sujo = false;
   let salvando = false;
+
+  // Precisa bater com o limite definido em storage.rules (request.resource.size).
+  const LIMITE_ARQUIVO_MB = 250;
+  const LIMITE_ARQUIVO_BYTES = LIMITE_ARQUIVO_MB * 1024 * 1024;
 
   const CATEGORIAS = [
     { key: "ebrat", label: "E-BRAT" },
@@ -609,6 +613,10 @@
         const barInner = bar.querySelector("i");
         const protocolo = await garantirProtocolo();
         for (const file of e.target.files) {
+          if (file.size > LIMITE_ARQUIVO_BYTES) {
+            toast(`"${file.name}" tem ${(file.size / 1024 / 1024).toFixed(0)}MB — acima do limite de ${LIMITE_ARQUIVO_MB}MB por arquivo.`, "err");
+            continue;
+          }
           bar.style.display = "block";
           try {
             const anexo = await uploadAnexo(protocolo, cat, file, (pct) => { barInner.style.width = pct + "%"; });
@@ -741,12 +749,22 @@
   }
 
   /* ---------- Carrega registro existente (modo edição) ---------- */
-  protegerPagina(async () => {
+  const ADMIN_EMAIL = "operacional@juanil.com.br";
+
+  protegerPagina(async (user) => {
     if (editId) {
       docRef = doc(SINISTROS_COL, editId);
       const snap = await getDoc(docRef);
       if (snap.exists()) {
-        preencherForm(snap.data());
+        const registro = snap.data();
+        const souDono = registro.criadoPorUid === user.uid;
+        const souAdmin = user.email === ADMIN_EMAIL;
+        if (!souDono && !souAdmin) {
+          toast("Você não tem permissão para editar este sinistro — só quem criou ou o administrador podem.", "err");
+          setTimeout(() => { location.href = `detalhe.html?id=${encodeURIComponent(editId)}`; }, 2000);
+          return;
+        }
+        preencherForm(registro);
         sujo = false;
       } else {
         toast("Sinistro não encontrado.", "err");
@@ -778,6 +796,8 @@
       } else {
         docRef = doc(SINISTROS_COL, protocolo);
         data.criadoEm = serverTimestamp();
+        data.criadoPorUid = auth.currentUser.uid;
+        data.criadoPorEmail = auth.currentUser.email;
         await setDoc(docRef, data, { merge: true });
       }
       sujo = false;

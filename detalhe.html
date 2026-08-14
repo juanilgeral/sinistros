@@ -39,13 +39,25 @@
   const params = new URLSearchParams(location.search);
   const id = params.get("id");
 
-  protegerPagina(async () => {
+  const ADMIN_EMAIL = "operacional@juanil.com.br";
+
+  protegerPagina(async (user) => {
     if (!id) { document.getElementById("relatorio").innerHTML = "<p>Sinistro não especificado.</p>"; return; }
     const ref = doc(SINISTROS_COL, id);
     const snap = await getDoc(ref);
     if (!snap.exists()) { document.getElementById("relatorio").innerHTML = "<p>Sinistro não encontrado.</p>"; return; }
     const s = snap.data();
+
+    const souDono = s.criadoPorUid === user.uid;
+    const souAdmin = user.email === ADMIN_EMAIL;
+    const podeGerenciar = souDono || souAdmin;
+
     document.getElementById("linkEditar").href = `form.html?id=${encodeURIComponent(id)}`;
+    if (!podeGerenciar) {
+      document.getElementById("linkEditar").remove();
+      document.getElementById("btnExcluir").remove();
+    }
+
     document.getElementById("stampHolder").innerHTML = `
       <div class="stamp ${s.status === 'concluido' ? '' : s.status === 'aberto' ? 'vermelho' : 'laranja'}">
         <span class="dot"></span>${s.protocolo || id}
@@ -53,12 +65,14 @@
     document.title = `Sinistro ${s.protocolo || id} — Juanil`;
     render(s, id);
 
-    document.getElementById("btnExcluir").addEventListener("click", async () => {
-      if (!confirm(`Excluir definitivamente o processo ${s.protocolo || id}? Esta ação não pode ser desfeita.`)) return;
-      await deleteDoc(ref);
-      toast("Sinistro excluído.");
-      setTimeout(() => location.href = "index.html", 600);
-    });
+    if (podeGerenciar) {
+      document.getElementById("btnExcluir").addEventListener("click", async () => {
+        if (!confirm(`Excluir definitivamente o processo ${s.protocolo || id}? Esta ação não pode ser desfeita.`)) return;
+        await deleteDoc(ref);
+        toast("Sinistro excluído.");
+        setTimeout(() => location.href = "index.html", 600);
+      });
+    }
   });
 
   function kv(label, valor, textoVazio) {
@@ -110,6 +124,7 @@
           <tr><td>Protocolo</td><td><b>${s.protocolo || id}</b></td></tr>
           <tr><td>Referência</td><td>Caminhão ${campoOuPendente(vj.placa)} × Táxi/Veículo ${campoOuPendente(vt.placa)} — ${fmtData(o.data) || "data não informada"}</td></tr>
           <tr><td>Status do processo</td><td>${statusBadge(s.status)} ${escapeHtmlLocal(s.statusResumo || "")}</td></tr>
+          <tr><td>Lançado por</td><td>${campoOuPendente(s.criadoPorEmail, "Não informado (registro antigo)")}</td></tr>
           <tr><td>Estrutura do relatório</td><td>Organizado conforme os campos do formulário oficial E-BRAT (PMERJ)</td></tr>
         </table>
 

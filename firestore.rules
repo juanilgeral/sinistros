@@ -1,13 +1,28 @@
 rules_version = '2';
 
 // Sistema de Sinistros — Juanil Transportes Rodoviários
-// Só usuários autenticados (cadastrados em Authentication) podem
-// ler ou gravar dados. Não há acesso público/anônimo.
+// Todos os usuários autenticados podem LER qualquer processo (é o
+// "banco de processos" consultável por protocolo). Mas só quem CRIOU
+// o registro pode editar ou apagar — exceto o administrador do
+// sistema, que pode editar e apagar qualquer processo.
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    function isAdmin() {
+      return request.auth.token.email == "operacional@juanil.com.br";
+    }
+
     match /sinistros/{sinistroId} {
-      allow read, write: if request.auth != null;
+      allow read: if request.auth != null;
+
+      // Ao criar, o campo criadoPorUid do documento tem que ser
+      // o próprio usuário que está criando (ninguém pode "assinar"
+      // um sinistro em nome de outra pessoa).
+      allow create: if request.auth != null
+                    && request.resource.data.criadoPorUid == request.auth.uid;
+
+      allow update, delete: if request.auth != null
+                    && (resource.data.criadoPorUid == request.auth.uid || isAdmin());
     }
 
     // Contador usado para gerar o número de protocolo sequencial
