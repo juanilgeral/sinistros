@@ -34,7 +34,7 @@
 </div>
 
 <script type="module">
-  import { protegerPagina, getDoc, deleteDoc, doc, SINISTROS_COL, fmtData, fmtDinheiro, campoOuPendente, statusBadge, toast } from "./app-core.js";
+  import { protegerPagina, getDoc, deleteDoc, doc, SINISTROS_COL, fmtData, fmtDinheiro, campoOuPendente, statusBadge, toast, nomeLancador } from "./app-core.js";
 
   const params = new URLSearchParams(location.search);
   const id = params.get("id");
@@ -124,7 +124,7 @@
           <tr><td>Protocolo</td><td><b>${s.protocolo || id}</b></td></tr>
           <tr><td>Referência</td><td>Caminhão ${campoOuPendente(vj.placa)} × Táxi/Veículo ${campoOuPendente(vt.placa)} — ${fmtData(o.data) || "data não informada"}</td></tr>
           <tr><td>Status do processo</td><td>${statusBadge(s.status)} ${escapeHtmlLocal(s.statusResumo || "")}</td></tr>
-          <tr><td>Lançado por</td><td>${campoOuPendente(s.criadoPorEmail, "Não informado (registro antigo)")}</td></tr>
+          <tr><td>Lançado por</td><td>${campoOuPendente(nomeLancador(s.criadoPorEmail), "Não informado (registro antigo)")}</td></tr>
           <tr><td>Estrutura do relatório</td><td>Organizado conforme os campos do formulário oficial E-BRAT (PMERJ)</td></tr>
         </table>
 

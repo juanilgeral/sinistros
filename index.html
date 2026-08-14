@@ -78,7 +78,7 @@
 </div>
 
 <script type="module">
-  import { auth, signOut, protegerPagina, getDocs, query, orderBy, SINISTROS_COL, statusBadge, fmtData } from "./app-core.js";
+  import { auth, signOut, protegerPagina, getDocs, query, orderBy, SINISTROS_COL, statusBadge, fmtData, nomeLancador } from "./app-core.js";
 
   let todos = [];
   let statusAtivo = "todos";
@@ -147,7 +147,7 @@
         <div class="veiculos">
           <span class="placas">${s.veiculoJuanil?.placa || "—"} × ${s.veiculoTerceiro?.placa || "—"}</span>
           <span class="partes">${s.veiculoJuanil?.condutor?.nome || "motorista não informado"} — vs — ${s.veiculoTerceiro?.proprietario?.nome || "terceiro não informado"}</span>
-          <span class="partes">Lançado por: ${s.criadoPorEmail || "não informado"}</span>
+          <span class="partes">Lançado por: ${nomeLancador(s.criadoPorEmail) || "não informado"}</span>
         </div>
         <div class="data"><b>${fmtData(s.ocorrencia?.data) || "—"}</b>${s.ocorrencia?.especifique || s.ocorrencia?.localTipo || ""}</div>
         <div class="data-docs">

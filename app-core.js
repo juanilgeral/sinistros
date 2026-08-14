@@ -30,6 +30,20 @@ export {
 
 export const SINISTROS_COL = collection(db, COLLECTION);
 
+// Nome de exibição de cada usuário, pelo e-mail de login.
+// Usado em qualquer tela que mostre "quem lançou" um sinistro.
+export const NOME_POR_EMAIL = {
+  "operacional@juanil.com.br": "Supervisor Ekland",
+  "operacional_2@juanil.com.br": "Supervisor Tavares",
+  "suportefrota@juanil.com.br": "Supervisor Irineu",
+  "juanil@juanil.com.br": "Diretoria",
+};
+
+export function nomeLancador(email) {
+  if (!email) return null;
+  return NOME_POR_EMAIL[email] || email;
+}
+
 /* ---------------- Autenticação: protege qualquer página ---------------- */
 export function protegerPagina(callback) {
   onAuthStateChanged(auth, (user) => {

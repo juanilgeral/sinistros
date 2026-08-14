@@ -469,6 +469,7 @@
   let docRef = null;
   let sujo = false;
   let salvando = false;
+  let precisaAdotarAutor = false; // true quando o registro em edição é antigo e não tem criadoPorUid
 
   // Precisa bater com o limite definido em storage.rules (request.resource.size).
   const LIMITE_ARQUIVO_MB = 250;
@@ -766,6 +767,11 @@
         }
         preencherForm(registro);
         sujo = false;
+        if (!registro.criadoPorUid) {
+          // Registro antigo, de antes de existir esse controle: assim que
+          // for salvo de novo, passa a registrar quem está mexendo nele.
+          precisaAdotarAutor = true;
+        }
       } else {
         toast("Sinistro não encontrado.", "err");
       }
@@ -792,6 +798,11 @@
       data.atualizadoEm = serverTimestamp();
 
       if (docRef) {
+        if (precisaAdotarAutor) {
+          data.criadoPorUid = auth.currentUser.uid;
+          data.criadoPorEmail = auth.currentUser.email;
+          precisaAdotarAutor = false;
+        }
         await updateDoc(docRef, data);
       } else {
         docRef = doc(SINISTROS_COL, protocolo);
