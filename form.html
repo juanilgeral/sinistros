@@ -607,7 +607,7 @@
         const dz = e.target.closest(".dropzone");
         const bar = dz.querySelector(".progress-bar");
         const barInner = bar.querySelector("i");
-        const protocolo = document.getElementById("campoProtocolo").value || (await garantirProtocolo());
+        const protocolo = await garantirProtocolo();
         for (const file of e.target.files) {
           bar.style.display = "block";
           try {
@@ -641,14 +641,22 @@
     });
   }
 
+  // Evita gerar mais de um protocolo se duas ações (ex.: dois uploads
+  // em categorias diferentes, ou um upload e o autosave) chamarem esta
+  // função quase ao mesmo tempo: todas passam a esperar a MESMA promise
+  // em andamento, em vez de cada uma pedir um número novo.
+  let protocoloEmAndamento = null;
   async function garantirProtocolo() {
-    let protocolo = document.getElementById("campoProtocolo").value;
-    if (!protocolo) {
-      protocolo = await gerarProtocolo();
-      document.getElementById("campoProtocolo").value = protocolo;
-      document.getElementById("protocoloTag").textContent = protocolo;
+    const campo = document.getElementById("campoProtocolo");
+    if (campo.value) return campo.value;
+    if (!protocoloEmAndamento) {
+      protocoloEmAndamento = gerarProtocolo().then((p) => {
+        campo.value = p;
+        document.getElementById("protocoloTag").textContent = p;
+        return p;
+      });
     }
-    return protocolo;
+    return protocoloEmAndamento;
   }
 
   /* ---------- Preenche o form a partir de um objeto (edição) ---------- */
@@ -749,8 +757,15 @@
   });
 
   /* ---------- Salvar (manual e automático usam a mesma função) ---------- */
+  let salvarPendente = false;
   async function salvarAgora(mostrarToast) {
-    if (salvando) return false;
+    if (salvando) {
+      // Já tem um salvamento em andamento: marca que é preciso salvar
+      // de novo assim que ele terminar, em vez de simplesmente ignorar
+      // esta chamada (o que podia perder as últimas alterações).
+      salvarPendente = true;
+      return false;
+    }
     salvando = true;
     try {
       const protocolo = await garantirProtocolo();
@@ -777,6 +792,10 @@
       return false;
     } finally {
       salvando = false;
+      if (salvarPendente) {
+        salvarPendente = false;
+        salvarAgora(false);
+      }
     }
   }
 
