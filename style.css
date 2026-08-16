@@ -386,17 +386,47 @@ table.doc-table tr:nth-child(even) td{background:#FAFBFC;}
 /* ---------- Login ---------- */
 .login-shell{
   min-height:100vh;display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(160deg,var(--azul-900),var(--azul-700));
+  position:relative;
 }
 .login-card{
   background:#fff;border-radius:14px;padding:36px 34px;width:100%;max-width:380px;
   box-shadow:0 20px 60px rgba(0,0,0,.3);
+  position:relative;
 }
 .login-card h1{font-size:19px;margin:0 0 4px;}
 .login-card p{font-size:13px;color:var(--cinza-600);margin:0 0 22px;}
 .login-card .field{margin-bottom:14px;}
 .login-card .btn{width:100%;justify-content:center;margin-top:6px;}
 .login-error{background:var(--vermelho-bg);color:var(--vermelho);font-size:12.5px;padding:9px 12px;border-radius:7px;margin-bottom:14px;display:none;}
+
+/* ---------- Cena de fundo animada (colisão) ---------- */
+.bg-scene{
+  position:fixed;
+  inset:0;
+  z-index:0;
+  overflow:hidden;
+  pointer-events:none;
+  background:var(--azul-900);
+}
+.bg-scene svg{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  display:block;
+}
+.bg-scene::after{
+  content:"";
+  position:absolute;
+  inset:0;
+}
+.bg-scene.tint-navy{opacity:.55;}
+.bg-scene.tint-navy::after{background:linear-gradient(160deg, rgba(20,40,61,.88), rgba(27,58,92,.8));}
+.bg-scene.tint-light{opacity:.24;}
+.bg-scene.tint-light::after{background:linear-gradient(180deg, rgba(243,245,248,.35), rgba(243,245,248,.9) 85%);}
+@media (max-width:700px){
+  .bg-scene.tint-light{opacity:.14;}
+}
 
 /* ---------- Modal ---------- */
 .modal-overlay{
@@ -459,3 +489,133 @@ table.doc-table tr:nth-child(even) td{background:#FAFBFC;}
   .report-card{padding:20px;}
   .photo-grid{grid-template-columns:1fr 1fr;}
 }
+
+/* ============================================================
+   Animação de fundo — colisão caminhão x táxi (decorativa)
+   ============================================================ */
+
+  .collision-animation{display:block;width:100%;height:auto;overflow:hidden;}
+
+  .sun{fill:url(#sunGlow);}
+  .cloud{fill:#ffffff;opacity:.85;}
+  .hill-back{fill:#9fd0c2;}
+  .hill-front{fill:url(#hillGrad);}
+  .ground{fill:url(#groundGrad);}
+  .road{fill:url(#roadGrad);}
+  .road-edge{fill:#2b3a49;}
+  .rumble{fill:#e7ecef;}
+  .lane-mark{fill:#f4d35e;}
+  .direction-arrow{fill:#8fa4b3;opacity:.5;}
+  .post{fill:#7c8b96;}
+  .post-cap{fill:#e6ebee;}
+
+  .vehicle{transform-box:fill-box;transform-origin:center;}
+  .shadow{fill:#16202a;opacity:.28;}
+
+  .truck-box{fill:url(#truckBoxGrad);stroke:#0e2338;stroke-width:4;}
+  .truck-box-panel{fill:#24486e;opacity:.55;}
+  .truck-brand{fill:#e8eef3;font-family:Arial,Helvetica,sans-serif;font-weight:700;letter-spacing:1px;opacity:.85;}
+  .truck-cab{fill:url(#truckCabGrad);stroke:#0e2338;stroke-width:4;}
+  .truck-window{fill:#bfe6ef;stroke:#0e2338;stroke-width:3;}
+  .truck-window-shine{fill:#ffffff;opacity:.35;}
+  .truck-bumper{fill:#1c2d3b;}
+  .truck-grille{fill:#0e1a24;}
+  .truck-mirror{fill:#1c2d3b;}
+  .chassis{fill:#131b22;}
+  .headlight{fill:#fff1b8;stroke:#caa63a;stroke-width:1.5;}
+  .headlight-beam{fill:url(#beamGrad);}
+  .tail-light{fill:#ff5b47;stroke:#a02617;stroke-width:1.5;}
+  .wheel{fill:#161d23;stroke:#5c6b78;stroke-width:4;}
+  .hub{fill:#c9d3d9;}
+  .hub-dot{fill:#5c6b78;}
+
+  .taxi-body{fill:url(#taxiGrad);stroke:#8a6a00;stroke-width:4;}
+  .taxi-roof{fill:#ffcf3f;}
+  .taxi-window{fill:#9fd7e3;stroke:#2b3a49;stroke-width:3;}
+  .taxi-window-shine{fill:#ffffff;opacity:.4;}
+  .taxi-door-line{stroke:#8a6a00;stroke-width:2;opacity:.5;fill:none;}
+  .taxi-sign{fill:#1c2d3b;}
+  .taxi-sign-text{fill:#ffcf3f;font-family:Arial,Helvetica,sans-serif;font-weight:700;}
+  .taxi-check{fill:#1c2d3b;}
+
+  .skidmark{fill:none;stroke:#1a2229;stroke-width:6;stroke-linecap:round;opacity:0;stroke-dasharray:260;stroke-dashoffset:260;}
+  .dust{fill:#cbb98a;}
+
+  .truck, .taxi, .impact-flash, .spark, .smoke, .debris, .direction-arrow,
+  .skidmark, .scene-shake{ animation-play-state:paused; }
+
+  .is-running .scene-shake{ animation: cam-shake 6.8s cubic-bezier(.45,0,.55,1) infinite; }
+  .is-running .truck{ animation: truck-hit 6.8s cubic-bezier(.45,0,.55,1) infinite; }
+  .is-running .taxi{ animation: taxi-approach 6.8s cubic-bezier(.45,0,.55,1) infinite; }
+  .is-running .impact-flash{ animation: flash 6.8s linear infinite; }
+  .is-running .spark{ animation: spark-burst 6.8s linear infinite; }
+  .is-running .smoke{ animation: smoke 6.8s ease-out infinite; }
+  .is-running .debris{ animation: debris 6.8s ease-out infinite; }
+  .is-running .direction-arrow{ animation: road-flow 2.4s linear infinite; }
+  .is-running .skidmark{ animation: skid 6.8s cubic-bezier(.45,0,.55,1) infinite; }
+
+  @keyframes taxi-approach{
+    0%,5%{ transform:translateX(-300px); }
+    46%{ transform:translateX(232px); }
+    56%{ transform:translateX(400px); }
+    60%{ transform:translateX(452px) rotate(1deg); }
+    64%{ transform:translateX(430px) rotate(-2deg); }
+    68%{ transform:translateX(446px) rotate(1deg); }
+    74%,100%{ transform:translateX(440px) rotate(0deg); }
+  }
+  @keyframes truck-hit{
+    0%,56%{ transform:translateX(0) rotate(0deg); }
+    60%{ transform:translateX(16px) rotate(.6deg); }
+    64%{ transform:translateX(-6px) rotate(-.3deg); }
+    68%{ transform:translateX(11px) rotate(.15deg); }
+    74%,100%{ transform:translateX(8px) rotate(0deg); }
+  }
+  @keyframes cam-shake{
+    0%,58%{ transform:translate(0,0); }
+    60%{ transform:translate(3px,-2px); }
+    61%{ transform:translate(-4px,2px); }
+    62%{ transform:translate(3px,1px); }
+    63%{ transform:translate(-2px,-2px); }
+    64%{ transform:translate(1px,1px); }
+    65%,100%{ transform:translate(0,0); }
+  }
+  @keyframes flash{
+    0%,57%{ opacity:0; transform:scale(.15); }
+    59.5%{ opacity:1; transform:scale(1.35); }
+    63%{ opacity:.5; transform:scale(1); }
+    67%,100%{ opacity:0; transform:scale(.7); }
+  }
+  @keyframes spark-burst{
+    0%,58%{ opacity:0; transform:translate(0,0) scale(.3); }
+    60%{ opacity:1; transform:translate(0,0) scale(1); }
+    66%{ opacity:.7; transform:translate(var(--sx,20px),var(--sy,-14px)) scale(.6); }
+    74%,100%{ opacity:0; transform:translate(var(--sx2,34px),var(--sy2,-22px)) scale(.2); }
+  }
+  @keyframes smoke{
+    0%,58%{ opacity:0; transform:translate(0,0) scale(.3); }
+    62%{ opacity:.7; transform:translate(2px,-10px) scale(.8); }
+    72%{ opacity:.5; transform:translate(18px,-46px) scale(1.4); }
+    90%,100%{ opacity:0; transform:translate(46px,-82px) scale(2); }
+  }
+  @keyframes debris{
+    0%,58%{ opacity:0; transform:translate(0,0) rotate(0deg); }
+    61%{ opacity:1; }
+    72%{ opacity:.85; transform:translate(38px,-56px) rotate(180deg); }
+    100%{ opacity:0; transform:translate(78px,26px) rotate(360deg); }
+  }
+  @keyframes road-flow{ from{ transform:translateX(-45px);} to{ transform:translateX(120px);} }
+  @keyframes skid{
+    0%,44%{ opacity:0; stroke-dashoffset:260; }
+    46%{ opacity:.6; }
+    58%{ opacity:.6; stroke-dashoffset:0; }
+    75%{ opacity:.45; }
+    100%{ opacity:.45; stroke-dashoffset:0; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .is-running .truck, .is-running .taxi, .is-running .impact-flash,
+    .is-running .spark, .is-running .smoke, .is-running .debris,
+    .is-running .direction-arrow, .is-running .skidmark, .is-running .scene-shake{
+      animation-duration:.01ms; animation-iteration-count:1;
+    }
+  }

@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      color-scheme: light;
+      background: #bfe7ef;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      min-width: 320px;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      background: #bfe7ef;
+    }
+
+    .collision-animation {
+      display: block;
+      width: 100%;
+      height: auto;
+      overflow: hidden;
+    }
+
+    .sky { fill: #bfe7ef; }
+    .sun { fill: #ffe29a; }
+    .cloud { fill: #effaff; opacity: .82; }
+    .hill-back { fill: #a7d3c3; }
+    .hill-front { fill: #76b49e; }
+    .ground { fill: #90c67d; }
+    .road { fill: #263545; }
+    .road-edge { fill: #354758; }
+    .lane-mark { fill: #ffd166; }
+    .direction-arrow { fill: #9aaebe; opacity: .55; }
+
+    .vehicle { transform-box: fill-box; transform-origin: center; }
+    .truck-body { fill: #da5c3b; stroke: #842f28; stroke-width: 4; }
+    .truck-cab { fill: #e77d45; stroke: #842f28; stroke-width: 4; }
+    .truck-window { fill: #b8e2eb; stroke: #31536b; stroke-width: 3; }
+    .vehicle-trim { fill: #f7b35a; }
+    .wheel { fill: #19232d; stroke: #778593; stroke-width: 4; }
+    .hub { fill: #dbe6eb; }
+    .headlight { fill: #ffe48a; }
+    .tail-light { fill: #ff735c; }
+    .car-body { fill: #4f74d8; stroke: #263c8b; stroke-width: 4; }
+    .car-window { fill: #b8e2eb; stroke: #263c8b; stroke-width: 3; }
+    .car-stripe { fill: #f7d85a; }
+
+    .truck,
+    .car,
+    .impact-flash,
+    .smoke,
+    .debris,
+    .direction-arrow {
+      animation-play-state: paused;
+    }
+
+    .is-running .truck { animation: truck-hit 6.8s cubic-bezier(.45, 0, .55, 1) infinite; }
+    .is-running .car { animation: car-approach 6.8s cubic-bezier(.45, 0, .55, 1) infinite; }
+    .is-running .impact-flash { animation: flash 6.8s linear infinite; }
+    .is-running .smoke { animation: smoke 6.8s ease-out infinite; }
+    .is-running .debris { animation: debris 6.8s ease-out infinite; }
+    .is-running .direction-arrow { animation: road-flow 2.2s linear infinite; }
+
+    @keyframes car-approach {
+      0%, 5% { transform: translateX(-285px); }
+      48% { transform: translateX(240px); }
+      59% { transform: translateX(425px); }
+      62% { transform: translateX(468px); }
+      66% { transform: translateX(438px) rotate(-1deg); }
+      72%, 100% { transform: translateX(462px) rotate(0deg); }
+    }
+
+    @keyframes truck-hit {
+      0%, 58% { transform: translateX(0); }
+      62% { transform: translateX(14px) rotate(.4deg); }
+      66% { transform: translateX(-7px) rotate(-.2deg); }
+      72%, 100% { transform: translateX(9px); }
+    }
+
+    @keyframes flash {
+      0%, 59% { opacity: 0; transform: scale(.2); }
+      61% { opacity: 1; transform: scale(1.25); }
+      65% { opacity: .55; transform: scale(1.02); }
+      69%, 100% { opacity: 0; transform: scale(.8); }
+    }
+
+    @keyframes smoke {
+      0%, 60% { opacity: 0; transform: translate(0, 0) scale(.3); }
+      64% { opacity: .75; transform: translate(0, -8px) scale(.85); }
+      73% { opacity: .45; transform: translate(16px, -40px) scale(1.35); }
+      88%, 100% { opacity: 0; transform: translate(42px, -74px) scale(1.9); }
+    }
+
+    @keyframes debris {
+      0%, 60% { opacity: 0; transform: translate(0, 0) rotate(0deg); }
+      63% { opacity: 1; }
+      75% { opacity: .8; transform: translate(34px, -53px) rotate(160deg); }
+      100% { opacity: 0; transform: translate(72px, 22px) rotate(330deg); }
+    }
+
+    @keyframes road-flow {
+      from { transform: translateX(-45px); }
+      to { transform: translateX(120px); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .is-running .truck,
+      .is-running .car,
+      .is-running .impact-flash,
+      .is-running .smoke,
+      .is-running .debris,
+      .is-running .direction-arrow {
+        animation-duration: .01ms;
+        animation-iteration-count: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <svg class="collision-animation is-running" viewBox="0 0 1000 510" role="img" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <rect class="sky" x="0" y="0" width="1000" height="510"/>
+    <circle class="sun" cx="855" cy="92" r="42"/>
+
+    <g class="cloud">
+      <path d="M90 115c0-19 15-34 34-34 8 0 15 3 21 7 8-18 25-30 46-30 28 0 50 22 50 50 0 3 0 6-1 9H90z"/>
+      <path d="M510 83c0-14 11-25 25-25 6 0 11 2 15 5 6-13 19-22 34-22 21 0 37 16 37 37 0 2 0 4-1 5H510z"/>
+    </g>
+
+    <path class="hill-back" d="M0 298c115-35 190-78 290-51 96 25 123 86 239 67 108-18 159-82 282-58 79 15 127 58 189 63v74H0z"/>
+    <path class="hill-front" d="M0 323c95-34 169-16 245-35 100-25 145 21 236 21 121 0 149-67 251-39 108 30 157 35 268-8v125H0z"/>
+    <rect class="ground" x="0" y="355" width="1000" height="155"/>
+
+    <path class="road-edge" d="M0 365h1000v145H0z"/>
+    <path class="road" d="M0 377h1000v133H0z"/>
+    <rect x="0" y="377" width="1000" height="7" fill="#607282" opacity=".65"/>
+    <rect x="0" y="503" width="1000" height="7" fill="#607282" opacity=".65"/>
+
+    <g>
+      <path class="lane-mark" d="M0 438h88v10H0z"/>
+      <path class="lane-mark" d="M176 438h88v10h-88z"/>
+      <path class="lane-mark" d="M352 438h88v10h-88z"/>
+      <path class="lane-mark" d="M528 438h88v10h-88z"/>
+      <path class="lane-mark" d="M704 438h88v10h-88z"/>
+      <path class="lane-mark" d="M880 438h120v10H880z"/>
+      <path class="direction-arrow" d="M75 405h37l-13-10 6-7 27 22-27 22-6-7 13-10H75z"/>
+      <path class="direction-arrow" d="M360 405h37l-13-10 6-7 27 22-27 22-6-7 13-10h-37z"/>
+      <path class="direction-arrow" d="M645 405h37l-13-10 6-7 27 22-27 22-6-7 13-10h-37z"/>
+      <path class="direction-arrow" d="M930 405h37l-13-10 6-7 27 22-27 22-6-7 13-10h-37z"/>
+    </g>
+
+    <g transform="translate(610 272)">
+      <g class="vehicle truck">
+        <rect class="truck-body" x="0" y="0" width="246" height="108" rx="8"/>
+        <rect class="truck-body" x="18" y="16" width="175" height="70" rx="4" fill="#c94d36"/>
+        <path class="vehicle-trim" d="M28 29h155v11H28zM28 68h155v11H28z" opacity=".7"/>
+        <path class="truck-cab" d="M246 30h39c25 0 42 17 42 42v36h-81z"/>
+        <path class="truck-window" d="M260 43h25c13 0 23 8 27 20h-52z"/>
+        <path class="truck-window" d="M260 68h53v23h-53z" opacity=".75"/>
+        <rect class="headlight" x="316" y="86" width="7" height="12" rx="3"/>
+        <rect class="tail-light" x="1" y="76" width="7" height="13" rx="3"/>
+        <circle class="wheel" cx="58" cy="112" r="23"/><circle class="hub" cx="58" cy="112" r="9"/>
+        <circle class="wheel" cx="256" cy="112" r="23"/><circle class="hub" cx="256" cy="112" r="9"/>
+      </g>
+    </g>
+
+    <g transform="translate(60 325)">
+      <g class="vehicle car">
+        <path class="car-body" d="M11 57h22l24-38c5-8 13-12 23-12h57c13 0 21 5 29 15l21 27h29c11 0 19 9 19 20v19H11z"/>
+        <path class="car-window" d="M77 17h29l23 29H59z"/>
+        <path class="car-window" d="M114 17h20c7 0 12 3 17 9l16 20h-31z"/>
+        <path class="car-stripe" d="M12 61h199v10H12z" opacity=".9"/>
+        <rect class="headlight" x="208" y="64" width="8" height="15" rx="4"/>
+        <rect class="tail-light" x="12" y="64" width="8" height="15" rx="4"/>
+        <circle class="wheel" cx="62" cy="92" r="22"/><circle class="hub" cx="62" cy="92" r="8"/>
+        <circle class="wheel" cx="169" cy="92" r="22"/><circle class="hub" cx="169" cy="92" r="8"/>
+      </g>
+    </g>
+
+    <g transform="translate(612 330)">
+      <g class="impact-flash">
+        <path fill="#fff3a6" stroke="#f3a847" stroke-width="4" d="M24 0l9 24 25-8-10 24 25 7-25 10 13 24-25-7-9 25-10-24-25 8 10-24-25-7 25-10-13-24 25 7z"/>
+      </g>
+    </g>
+
+    <g transform="translate(645 318)">
+      <g class="smoke">
+        <circle fill="#edf3f5" cx="0" cy="38" r="23"/>
+        <circle fill="#dce7eb" cx="27" cy="27" r="29"/>
+        <circle fill="#f4f8f8" cx="49" cy="40" r="21"/>
+        <circle fill="#cbd9df" cx="29" cy="53" r="18"/>
+      </g>
+    </g>
+
+    <g transform="translate(612 338)">
+      <g class="debris">
+        <rect fill="#f7d85a" x="0" y="0" width="12" height="6" rx="2" transform="rotate(22)"/>
+        <rect fill="#ef476f" x="25" y="7" width="9" height="7" rx="2" transform="rotate(-28)"/>
+        <path fill="#e7eef2" d="M47 1l8 5-7 8-8-5z"/>
+      </g>
+    </g>
+  </svg>
+</body>
+</html>
