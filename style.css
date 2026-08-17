@@ -420,12 +420,12 @@ table.doc-table tr:nth-child(even) td{background:#FAFBFC;}
   position:absolute;
   inset:0;
 }
-.bg-scene.tint-navy{opacity:.55;}
-.bg-scene.tint-navy::after{background:linear-gradient(160deg, rgba(20,40,61,.88), rgba(27,58,92,.8));}
-.bg-scene.tint-light{opacity:.24;}
-.bg-scene.tint-light::after{background:linear-gradient(180deg, rgba(243,245,248,.35), rgba(243,245,248,.9) 85%);}
+.bg-scene.tint-navy{opacity:.6;}
+.bg-scene.tint-navy::after{background:linear-gradient(160deg, rgba(20,40,61,.72), rgba(27,58,92,.62));}
+.bg-scene.tint-light{opacity:.62;}
+.bg-scene.tint-light::after{background:linear-gradient(180deg, rgba(243,245,248,.1), rgba(243,245,248,.55) 75%, rgba(243,245,248,.82) 100%);}
 @media (max-width:700px){
-  .bg-scene.tint-light{opacity:.14;}
+  .bg-scene.tint-light{opacity:.4;}
 }
 
 /* ---------- Modal ---------- */
