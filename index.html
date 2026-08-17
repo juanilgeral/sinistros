@@ -206,28 +206,30 @@
 </div>
 
 <div class="wrap">
-  <div class="toolbar">
-    <div class="search-box">
-      <input type="text" id="busca" placeholder="Buscar por protocolo, placa, nome do condutor ou terceiro...">
+  <div class="painel-processos">
+    <div class="toolbar">
+      <div class="search-box">
+        <input type="text" id="busca" placeholder="Buscar por protocolo, placa, nome do condutor ou terceiro...">
+      </div>
+      <div class="filters" id="filtros">
+        <button class="chip active" data-status="todos">Todos</button>
+        <button class="chip" data-status="aberto">Aberto</button>
+        <button class="chip" data-status="juridico">Com o jurídico</button>
+        <button class="chip" data-status="concluido">Concluído</button>
+      </div>
+      <button type="button" class="btn btn-outline" id="btnModeloEmail">✉️ Modelo de e-mail</button>
+      <button type="button" class="btn btn-primary" id="btnNovoSinistro">+ Novo Sinistro</button>
     </div>
-    <div class="filters" id="filtros">
-      <button class="chip active" data-status="todos">Todos</button>
-      <button class="chip" data-status="aberto">Aberto</button>
-      <button class="chip" data-status="juridico">Com o jurídico</button>
-      <button class="chip" data-status="concluido">Concluído</button>
+
+    <div class="grid-list" id="lista">
+      <!-- preenchido via JS -->
     </div>
-    <button type="button" class="btn btn-outline" id="btnModeloEmail">✉️ Modelo de e-mail</button>
-    <button type="button" class="btn btn-primary" id="btnNovoSinistro">+ Novo Sinistro</button>
-  </div>
 
-  <div class="grid-list" id="lista">
-    <!-- preenchido via JS -->
-  </div>
-
-  <div class="empty-state" id="vazio" style="display:none;">
-    <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12h6M9 16h6M9 8h6M5 4h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z"/></svg>
-    <h3>Nenhum processo encontrado</h3>
-    <p>Ajuste a busca ou cadastre um novo sinistro.</p>
+    <div class="empty-state" id="vazio" style="display:none;">
+      <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12h6M9 16h6M9 8h6M5 4h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z"/></svg>
+      <h3>Nenhum processo encontrado</h3>
+      <p>Ajuste a busca ou cadastre um novo sinistro.</p>
+    </div>
   </div>
 </div>
 

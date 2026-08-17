@@ -192,6 +192,14 @@ input,select,textarea{font-family:inherit;}
 .chip.active{background:var(--azul-700);color:#fff;border-color:var(--azul-700);}
 
 /* ---------- List cards ---------- */
+.painel-processos{
+  border:2px solid var(--vermelho);
+  border-radius:14px;
+  background:rgba(255,255,255,.72);
+  backdrop-filter:blur(2px);
+  padding:20px;
+  box-shadow:0 8px 28px rgba(20,40,61,.12);
+}
 .grid-list{display:flex;flex-direction:column;gap:10px;}
 .card-processo{
   background:var(--card);
