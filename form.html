@@ -440,7 +440,7 @@
 <script type="module">
   import {
     protegerPagina, gerarProtocolo, getDoc, setDoc, updateDoc, doc, serverTimestamp,
-    SINISTROS_COL, uploadAnexo, removerAnexo, toast, escapeHtml, auth
+    SINISTROS_COL, uploadAnexo, removerAnexo, toast, escapeHtml, auth, ADMIN_EMAIL, DIRETORIA_EMAIL
   } from "./app-core.js";
   import { COLLECTION } from "./firebase-config.js";
 
@@ -750,8 +750,6 @@
   }
 
   /* ---------- Carrega registro existente (modo edição) ---------- */
-  const ADMIN_EMAIL = "operacional@juanil.com.br";
-
   protegerPagina(async (user) => {
     if (editId) {
       docRef = doc(SINISTROS_COL, editId);
@@ -760,8 +758,9 @@
         const registro = snap.data();
         const souDono = registro.criadoPorUid === user.uid;
         const souAdmin = user.email === ADMIN_EMAIL;
-        if (!souDono && !souAdmin) {
-          toast("Você não tem permissão para editar este sinistro — só quem criou ou o administrador podem.", "err");
+        const souDiretoria = user.email === DIRETORIA_EMAIL;
+        if (!souDono && !souAdmin && !souDiretoria) {
+          toast("Você não tem permissão para editar este sinistro — só quem criou, o administrador ou a diretoria podem.", "err");
           setTimeout(() => { location.href = `detalhe.html?id=${encodeURIComponent(editId)}`; }, 2000);
           return;
         }

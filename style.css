@@ -192,6 +192,22 @@ input,select,textarea{font-family:inherit;}
 .chip.active{background:var(--azul-700);color:#fff;border-color:var(--azul-700);}
 
 /* ---------- List cards ---------- */
+.banner-juridico{
+  border:1.5px solid var(--laranja);
+  background:var(--laranja-bg);
+  border-radius:12px;
+  padding:14px 18px;
+  margin-bottom:16px;
+}
+.banner-juridico-head{font-size:13.5px;font-weight:600;color:#7a4300;margin-bottom:8px;}
+.banner-juridico-lista{display:flex;flex-wrap:wrap;gap:8px;}
+.banner-juridico-item{
+  font-family:var(--mono);font-size:12.5px;font-weight:700;
+  background:#fff;border:1px solid var(--laranja);color:var(--laranja);
+  padding:5px 10px;border-radius:7px;
+}
+.banner-juridico-item:hover{background:var(--laranja);color:#fff;}
+
 .painel-processos{
   border:2px solid var(--vermelho);
   border-radius:14px;

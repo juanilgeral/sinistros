@@ -206,6 +206,7 @@
 </div>
 
 <div class="wrap">
+  <div class="banner-juridico" id="bannerJuridico" style="display:none;"></div>
   <div class="painel-processos">
     <div class="toolbar">
       <div class="search-box">
@@ -280,7 +281,25 @@
     const snap = await getDocs(q);
     todos = [];
     snap.forEach((d) => todos.push({ id: d.id, ...d.data() }));
+    renderBannerJuridico();
     render();
+  }
+
+  function renderBannerJuridico() {
+    const banner = document.getElementById("bannerJuridico");
+    const enviados = todos.filter((s) => s.compartilhamentoJuridico?.token);
+    if (enviados.length === 0) {
+      banner.style.display = "none";
+      banner.innerHTML = "";
+      return;
+    }
+    banner.style.display = "block";
+    banner.innerHTML = `
+      <div class="banner-juridico-head">📨 <b>${enviados.length}</b> processo${enviados.length > 1 ? "s" : ""} já ${enviados.length > 1 ? "foram encaminhados" : "foi encaminhado"} ao jurídico pela diretoria</div>
+      <div class="banner-juridico-lista">
+        ${enviados.map((s) => `<a href="detalhe.html?id=${encodeURIComponent(s.id)}" class="banner-juridico-item">${s.protocolo || s.id}</a>`).join("")}
+      </div>
+    `;
   }
 
   function statusRegistroOficial(sinistro) {

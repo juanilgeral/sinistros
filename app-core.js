@@ -29,6 +29,11 @@ export {
 };
 
 export const SINISTROS_COL = collection(db, COLLECTION);
+export const COMPARTILHAMENTOS_COL = collection(db, "compartilhamentos");
+
+// E-mails com papéis especiais no sistema.
+export const ADMIN_EMAIL = "operacional@juanil.com.br";
+export const DIRETORIA_EMAIL = "juanil@juanil.com.br";
 
 // Nome de exibição de cada usuário, pelo e-mail de login.
 // Usado em qualquer tela que mostre "quem lançou" um sinistro.
@@ -42,6 +47,15 @@ export const NOME_POR_EMAIL = {
 export function nomeLancador(email) {
   if (!email) return null;
   return NOME_POR_EMAIL[email] || email;
+}
+
+// Token aleatório e imprevisível para os links "sem senha" do jurídico
+// (usado como ID do documento em /compartilhamentos). 28 bytes de
+// aleatoriedade criptográfica — impossível de adivinhar por tentativa.
+export function gerarTokenSeguro() {
+  const bytes = new Uint8Array(28);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (b) => b.toString(36).padStart(2, "0")).join("");
 }
 
 /* ---------------- Autenticação: protege qualquer página ---------------- */

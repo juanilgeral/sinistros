@@ -2,14 +2,26 @@ rules_version = '2';
 
 // Sistema de Sinistros — Juanil Transportes Rodoviários
 // Todos os usuários autenticados podem LER qualquer processo (é o
-// "banco de processos" consultável por protocolo). Mas só quem CRIOU
+// "banco de processos" consultável por protocolo). Só quem CRIOU
 // o registro pode editar ou apagar — exceto o administrador do
-// sistema, que pode editar e apagar qualquer processo.
+// sistema e a diretoria, que podem editar e apagar qualquer processo
+// (a diretoria precisa disso para encaminhar ao jurídico e registrar
+// o parecer em qualquer sinistro, não só nos que ela mesma lançou).
+//
+// A coleção "compartilhamentos" guarda os links sem senha gerados
+// pela diretoria para o jurídico acessar um processo específico:
+// cada documento tem como ID o próprio token aleatório do link, então
+// "adivinhar" um token é inviável — e como listagem é bloqueada,
+// não dá para varrer a coleção em busca de links válidos.
 service cloud.firestore {
   match /databases/{database}/documents {
 
     function isAdmin() {
       return request.auth.token.email == "operacional@juanil.com.br";
+    }
+
+    function isDiretoria() {
+      return request.auth.token.email == "juanil@juanil.com.br";
     }
 
     match /sinistros/{sinistroId} {
@@ -22,7 +34,20 @@ service cloud.firestore {
                     && request.resource.data.criadoPorUid == request.auth.uid;
 
       allow update, delete: if request.auth != null
-                    && (resource.data.criadoPorUid == request.auth.uid || isAdmin());
+                    && (resource.data.criadoPorUid == request.auth.uid || isAdmin() || isDiretoria());
+    }
+
+    match /compartilhamentos/{token} {
+      // Qualquer pessoa com o link exato (o token) pode LER — é assim
+      // que o jurídico acessa sem precisar de login. Sem o token exato
+      // não há como encontrar o documento, porque listar é proibido.
+      allow get: if true;
+      allow list: if false;
+
+      // Só a diretoria (ou o administrador) pode criar/atualizar/revogar
+      // um link de compartilhamento.
+      allow create, update, delete: if request.auth != null
+                    && (isDiretoria() || isAdmin());
     }
 
     // Contador usado para gerar o número de protocolo sequencial

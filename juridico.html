@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Relatório de Sinistro — Juanil</title>
+<title>Relatório de Sinistro — Acesso Jurídico</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,215 +12,63 @@
   <div class="brand">
     <img src="logo.jpg" alt="Juanil" class="brand-logo">
     <div class="brand-text">
-      <span class="brand-title">Registros Internos de Colisões</span>
+      <span class="brand-title">Acesso do Jurídico</span>
       <span class="brand-sub">Juanil Transportes Rodoviários</span>
     </div>
   </div>
   <div class="user">
-    <a href="index.html" class="btn btn-ghost btn-sm" style="color:#fff;">← Voltar</a>
+    <span style="font-size:12.5px;color:#B9C8DA;">Link de acesso direto — sem necessidade de login</span>
   </div>
 </div>
 
 <div class="wrap">
-  <div class="toolbar no-print">
+  <div class="toolbar no-print" id="toolbarAcoes" style="display:none;">
     <div id="stampHolder"></div>
     <div style="flex:1;"></div>
-    <button class="btn btn-outline" id="btnLinkJuridico" style="display:none;">🔗 Link do jurídico</button>
-    <button class="btn btn-outline" id="btnEnviarJuridico" style="display:none;">📨 Enviar ao Jurídico</button>
     <button class="btn btn-outline" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
-    <a class="btn btn-outline" id="linkEditar" href="#">✎ Editar</a>
-    <button class="btn btn-danger" id="btnExcluir">Excluir</button>
   </div>
 
-  <div id="relatorio"></div>
-</div>
-
-<div class="modal-overlay" id="modalLinkJuridico">
-  <div class="modal-box modal-box-wide">
-    <h3>Link de acesso para o jurídico</h3>
-    <p class="hint">Esse link não pede login — quem tiver o endereço consegue ver o relatório completo e baixar os anexos. Envie só para quem deve ter acesso.</p>
-    <textarea id="textoLinkJuridico" class="modelo-email-textarea" style="min-height:60px;" readonly></textarea>
-    <p class="modal-copiado" id="linkJuridicoCopiadoMsg" style="display:none;">✅ Copiado!</p>
-    <div class="modal-actions">
-      <button type="button" class="btn btn-ghost" id="btnRevogarLink">🚫 Revogar este link</button>
-      <button type="button" class="btn btn-ghost" id="modalLinkJuridicoFechar">Fechar</button>
-      <button type="button" class="btn btn-primary" id="modalLinkJuridicoCopiar">📋 Copiar link</button>
+  <div id="relatorio">
+    <div class="report-card" id="carregando">
+      <p class="rpt-narrative">Carregando processo...</p>
     </div>
   </div>
 </div>
 
 <script type="module">
-  import {
-    protegerPagina, getDoc, setDoc, deleteDoc, doc, serverTimestamp,
-    SINISTROS_COL, COMPARTILHAMENTOS_COL, fmtData, fmtDinheiro, campoOuPendente,
-    statusBadge, toast, nomeLancador, ADMIN_EMAIL, DIRETORIA_EMAIL, gerarTokenSeguro
-  } from "./app-core.js";
+  import { db, doc, getDoc, fmtData, fmtDinheiro, campoOuPendente, statusBadge, nomeLancador } from "./app-core.js";
 
   const params = new URLSearchParams(location.search);
-  const id = params.get("id");
+  const token = params.get("t");
 
-  protegerPagina(async (user) => {
-    if (!id) { document.getElementById("relatorio").innerHTML = "<p>Sinistro não especificado.</p>"; return; }
-    const ref = doc(SINISTROS_COL, id);
-    const snap = await getDoc(ref);
-    if (!snap.exists()) { document.getElementById("relatorio").innerHTML = "<p>Sinistro não encontrado.</p>"; return; }
-    let s = snap.data();
-
-    const souDono = s.criadoPorUid === user.uid;
-    const souAdmin = user.email === ADMIN_EMAIL;
-    const souDiretoria = user.email === DIRETORIA_EMAIL;
-    const podeGerenciar = souDono || souAdmin || souDiretoria;
-
-    document.getElementById("linkEditar").href = `form.html?id=${encodeURIComponent(id)}`;
-    if (!podeGerenciar) {
-      document.getElementById("linkEditar").remove();
-      document.getElementById("btnExcluir").remove();
+  async function carregar() {
+    if (!token) {
+      document.getElementById("relatorio").innerHTML = "<div class=\"report-card\"><p class=\"rpt-narrative\">Link inválido — falta o parâmetro de acesso.</p></div>";
+      return;
     }
-
+    let snap;
+    try {
+      snap = await getDoc(doc(db, "compartilhamentos", token));
+    } catch (err) {
+      console.error(err);
+      document.getElementById("relatorio").innerHTML = "<div class=\"report-card\"><p class=\"rpt-narrative\">Não foi possível carregar este link. Ele pode ter sido revogado, ou o endereço está incompleto.</p></div>";
+      return;
+    }
+    if (!snap.exists()) {
+      document.getElementById("relatorio").innerHTML = "<div class=\"report-card\"><p class=\"rpt-narrative\">Este link não existe mais — pode ter sido revogado pela diretoria. Solicite um novo link.</p></div>";
+      return;
+    }
+    const s = snap.data();
+    const id = s.sinistroId || "";
+    document.title = `Sinistro ${s.protocolo || id} — Acesso Jurídico`;
+    document.getElementById("toolbarAcoes").style.display = "flex";
     document.getElementById("stampHolder").innerHTML = `
       <div class="stamp ${s.status === 'concluido' ? '' : s.status === 'aberto' ? 'vermelho' : 'laranja'}">
         <span class="dot"></span>${s.protocolo || id}
       </div>`;
-    document.title = `Sinistro ${s.protocolo || id} — Juanil`;
-    render(s, id, souDiretoria);
-
-    if (podeGerenciar) {
-      document.getElementById("btnExcluir").addEventListener("click", async () => {
-        if (!confirm(`Excluir definitivamente o processo ${s.protocolo || id}? Esta ação não pode ser desfeita.`)) return;
-        await deleteDoc(ref);
-        toast("Sinistro excluído.");
-        setTimeout(() => location.href = "index.html", 600);
-      });
-    }
-
-    /* ---------- Encaminhar ao jurídico (só a diretoria) ---------- */
-    const btnEnviar = document.getElementById("btnEnviarJuridico");
-    const btnLink = document.getElementById("btnLinkJuridico");
-    const modalLink = document.getElementById("modalLinkJuridico");
-    const campoLink = document.getElementById("textoLinkJuridico");
-
-    function linkDoToken(token) {
-      return `${location.origin}${location.pathname.replace("detalhe.html", "juridico.html")}?t=${token}`;
-    }
-
-    function atualizarBotoesJuridico() {
-      if (!souDiretoria) return;
-      btnEnviar.style.display = "inline-flex";
-      btnEnviar.textContent = s.compartilhamentoJuridico?.token ? "📨 Reenviar (gerar novo link)" : "📨 Enviar ao Jurídico";
-      btnLink.style.display = s.compartilhamentoJuridico?.token ? "inline-flex" : "none";
-    }
-    atualizarBotoesJuridico();
-
-    function abrirModalLink(token) {
-      campoLink.value = linkDoToken(token);
-      document.getElementById("linkJuridicoCopiadoMsg").style.display = "none";
-      modalLink.classList.add("show");
-    }
-
-    if (souDiretoria) {
-      btnEnviar.addEventListener("click", async () => {
-        if (!confirm("Encaminhar este processo ao jurídico? Um link de acesso sem senha será gerado (ou substituído, se já existir um).")) return;
-        btnEnviar.disabled = true;
-        try {
-          const token = gerarTokenSeguro();
-          // Snapshot completo — é o que o jurídico vai enxergar pelo link,
-          // sem precisar de login nem acesso ao restante do sistema.
-          await setDoc(doc(COMPARTILHAMENTOS_COL, token), {
-            ...s,
-            sinistroId: id,
-            compartilhadoEm: serverTimestamp(),
-            compartilhadoPorEmail: user.email
-          });
-
-          const patch = {
-            compartilhamentoJuridico: { token, criadoEm: serverTimestamp(), criadoPorEmail: user.email }
-          };
-          if (s.status === "aberto") patch.status = "juridico";
-          await setDoc(ref, patch, { merge: true });
-
-          s = { ...s, ...patch, compartilhamentoJuridico: { token, criadoPorEmail: user.email } };
-          atualizarBotoesJuridico();
-          render(s, id, souDiretoria);
-          toast("Enviado ao jurídico — link gerado.", "ok");
-          abrirModalLink(token);
-        } catch (err) {
-          console.error(err);
-          toast("Erro ao encaminhar ao jurídico.", "err");
-        } finally {
-          btnEnviar.disabled = false;
-        }
-      });
-
-      btnLink.addEventListener("click", () => {
-        if (s.compartilhamentoJuridico?.token) abrirModalLink(s.compartilhamentoJuridico.token);
-      });
-
-      document.getElementById("btnRevogarLink").addEventListener("click", async () => {
-        if (!s.compartilhamentoJuridico?.token) return;
-        if (!confirm("Revogar este link? Quem tiver o endereço deixa de conseguir acessar o processo.")) return;
-        try {
-          await deleteDoc(doc(COMPARTILHAMENTOS_COL, s.compartilhamentoJuridico.token));
-          await setDoc(ref, { compartilhamentoJuridico: null }, { merge: true });
-          s = { ...s, compartilhamentoJuridico: null };
-          atualizarBotoesJuridico();
-          modalLink.classList.remove("show");
-          toast("Link revogado.");
-        } catch (err) {
-          console.error(err);
-          toast("Erro ao revogar o link.", "err");
-        }
-      });
-    }
-
-    document.getElementById("modalLinkJuridicoFechar").addEventListener("click", () => modalLink.classList.remove("show"));
-    modalLink.addEventListener("click", (e) => { if (e.target === modalLink) modalLink.classList.remove("show"); });
-    document.getElementById("modalLinkJuridicoCopiar").addEventListener("click", async () => {
-      try {
-        await navigator.clipboard.writeText(campoLink.value);
-        document.getElementById("linkJuridicoCopiadoMsg").style.display = "block";
-      } catch {
-        campoLink.select();
-        document.execCommand("copy");
-        document.getElementById("linkJuridicoCopiadoMsg").style.display = "block";
-      }
-    });
-
-    /* ---------- Parecer da diretoria ---------- */
-    async function salvarParecer(texto) {
-      const patch = {
-        parecerDiretoria: { texto, atualizadoEm: serverTimestamp(), atualizadoPorEmail: user.email }
-      };
-      await setDoc(ref, patch, { merge: true });
-      // Mantém o link já compartilhado (se existir) com o parecer em dia.
-      if (s.compartilhamentoJuridico?.token) {
-        await setDoc(doc(COMPARTILHAMENTOS_COL, s.compartilhamentoJuridico.token), patch, { merge: true });
-      }
-      s = { ...s, ...patch };
-    }
-
-    const campoParecer = document.getElementById("campoParecerDiretoria");
-    const btnSalvarParecer = document.getElementById("btnSalvarParecer");
-    if (campoParecer && btnSalvarParecer) {
-      document.getElementById("relatorio").addEventListener("click", async (e) => {
-        if (e.target.id !== "btnSalvarParecer") return;
-        const btn = e.target;
-        const campo = document.getElementById("campoParecerDiretoria");
-        btn.disabled = true;
-        btn.textContent = "Salvando...";
-        try {
-          await salvarParecer(campo.value.trim());
-          toast("Parecer salvo.", "ok");
-          render(s, id, souDiretoria);
-        } catch (err) {
-          console.error(err);
-          toast("Erro ao salvar o parecer.", "err");
-        } finally {
-          btn.disabled = false;
-          btn.textContent = "Salvar parecer";
-        }
-      });
-    }
-  });
+    render(s, id, false);
+  }
+  carregar();
 
   function kv(label, valor, textoVazio) {
     return `<tr><td>${label}</td><td>${campoOuPendente(valor, textoVazio)}</td></tr>`;
@@ -552,6 +400,7 @@
     div.textContent = str || "";
     return div.innerHTML;
   }
+
 </script>
 </body>
 </html>
