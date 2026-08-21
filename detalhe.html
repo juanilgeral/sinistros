@@ -27,6 +27,8 @@
     <div style="flex:1;"></div>
     <button class="btn btn-outline" id="btnLinkJuridico" style="display:none;">🔗 Link do jurídico</button>
     <button class="btn btn-outline" id="btnEnviarJuridico" style="display:none;">📨 Enviar ao Jurídico</button>
+    <button class="btn btn-outline" id="btnArquivar" style="display:none;">🗄️ Arquivar processo</button>
+    <button class="btn btn-outline" id="btnReabrir" style="display:none;">🔓 Reabrir processo</button>
     <button class="btn btn-outline" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
     <a class="btn btn-outline" id="linkEditar" href="#">✎ Editar</a>
     <button class="btn btn-danger" id="btnExcluir">Excluir</button>
@@ -49,11 +51,35 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="modalExcluir">
+  <div class="modal-box">
+    <h3>⚠️ Excluir processo?</h3>
+    <p class="hint" id="textoModalExcluir">Esta ação apaga o processo definitivamente e não pode ser desfeita. Tem certeza?</p>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" id="modalExcluirCancelar">Cancelar</button>
+      <button type="button" class="btn btn-danger" id="modalExcluirConfirmar">Sim, excluir definitivamente</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalArquivar">
+  <div class="modal-box">
+    <h3>Arquivar este processo?</h3>
+    <p class="hint">Ele sai da lista principal, mas fica guardado — a diretoria pode reabri-lo a qualquer momento pra relançar ou consultar.</p>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" id="modalArquivarCancelar">Cancelar</button>
+      <button type="button" class="btn btn-primary" id="modalArquivarConfirmar">Arquivar</button>
+    </div>
+  </div>
+</div>
+
+
 <script type="module">
   import {
     protegerPagina, getDoc, setDoc, deleteDoc, doc, serverTimestamp,
     SINISTROS_COL, COMPARTILHAMENTOS_COL, fmtData, fmtDinheiro, campoOuPendente,
-    statusBadge, toast, nomeLancador, ADMIN_EMAIL, DIRETORIA_EMAIL, gerarTokenSeguro
+    statusBadge, toast, nomeLancador, ADMIN_EMAIL, DIRETORIA_EMAIL, gerarTokenSeguro,
+    foiAtualizadoDepoisDaCriacao
   } from "./app-core.js";
 
   const params = new URLSearchParams(location.search);
@@ -85,11 +111,63 @@
     render(s, id, souDiretoria);
 
     if (podeGerenciar) {
-      document.getElementById("btnExcluir").addEventListener("click", async () => {
-        if (!confirm(`Excluir definitivamente o processo ${s.protocolo || id}? Esta ação não pode ser desfeita.`)) return;
+      const modalExcluir = document.getElementById("modalExcluir");
+      document.getElementById("textoModalExcluir").textContent =
+        `Isso apaga o processo ${s.protocolo || id} definitivamente, incluindo o histórico e os anexos vinculados. Esta ação não pode ser desfeita. Tem certeza?`;
+      document.getElementById("btnExcluir").addEventListener("click", () => modalExcluir.classList.add("show"));
+      document.getElementById("modalExcluirCancelar").addEventListener("click", () => modalExcluir.classList.remove("show"));
+      modalExcluir.addEventListener("click", (e) => { if (e.target === modalExcluir) modalExcluir.classList.remove("show"); });
+      document.getElementById("modalExcluirConfirmar").addEventListener("click", async () => {
         await deleteDoc(ref);
         toast("Sinistro excluído.");
         setTimeout(() => location.href = "index.html", 600);
+      });
+    }
+
+    /* ---------- Arquivar / reabrir (só a diretoria) ---------- */
+    const btnArquivar = document.getElementById("btnArquivar");
+    const btnReabrir = document.getElementById("btnReabrir");
+    const modalArquivar = document.getElementById("modalArquivar");
+
+    function atualizarBotoesArquivo() {
+      if (!souDiretoria) return;
+      btnArquivar.style.display = s.arquivado ? "none" : "inline-flex";
+      btnReabrir.style.display = s.arquivado ? "inline-flex" : "none";
+    }
+    atualizarBotoesArquivo();
+
+    if (souDiretoria) {
+      btnArquivar.addEventListener("click", () => modalArquivar.classList.add("show"));
+      document.getElementById("modalArquivarCancelar").addEventListener("click", () => modalArquivar.classList.remove("show"));
+      modalArquivar.addEventListener("click", (e) => { if (e.target === modalArquivar) modalArquivar.classList.remove("show"); });
+      document.getElementById("modalArquivarConfirmar").addEventListener("click", async () => {
+        try {
+          const patch = { arquivado: true, arquivadoEm: serverTimestamp(), arquivadoPorEmail: user.email };
+          await setDoc(ref, patch, { merge: true });
+          s = { ...s, ...patch };
+          modalArquivar.classList.remove("show");
+          atualizarBotoesArquivo();
+          render(s, id, souDiretoria);
+          toast("Processo arquivado.", "ok");
+        } catch (err) {
+          console.error(err);
+          toast("Erro ao arquivar.", "err");
+        }
+      });
+
+      btnReabrir.addEventListener("click", async () => {
+        if (!confirm(`Reabrir o processo ${s.protocolo || id}? Ele volta a aparecer na lista principal.`)) return;
+        try {
+          const patch = { arquivado: false, reabertoEm: serverTimestamp(), reabertoPorEmail: user.email };
+          await setDoc(ref, patch, { merge: true });
+          s = { ...s, ...patch };
+          atualizarBotoesArquivo();
+          render(s, id, souDiretoria);
+          toast("Processo reaberto.", "ok");
+        } catch (err) {
+          console.error(err);
+          toast("Erro ao reabrir.", "err");
+        }
       });
     }
 
@@ -261,6 +339,14 @@
 
     document.getElementById("relatorio").innerHTML = `
       <div class="report-card">
+        ${foiAtualizadoDepoisDaCriacao(s) ? `
+        <div class="aviso-atualizado">
+          ⚠️ Processo atualizado em ${fmtDataHoraLocal(s.atualizadoEm)} por ${escapeHtmlLocal(nomeLancador(s.atualizadoPorEmail) || "usuário não identificado")}.
+        </div>` : ""}
+        ${s.arquivado ? `
+        <div class="aviso-atualizado" style="background:#E3E7ED;">
+          🗄️ Processo arquivado em ${fmtDataHoraLocal(s.arquivadoEm)} por ${escapeHtmlLocal(nomeLancador(s.arquivadoPorEmail) || "")}. Não aparece na lista principal até ser reaberto.
+        </div>` : ""}
         <div class="report-head">
           <div>
             <div class="sub">Juanil Transportes Rodoviários</div>
@@ -551,6 +637,14 @@
     const div = document.createElement("div");
     div.textContent = str || "";
     return div.innerHTML;
+  }
+
+  function fmtDataHoraLocal(timestamp) {
+    if (!timestamp || typeof timestamp.toDate !== "function") return "data não disponível";
+    const d = timestamp.toDate();
+    const data = d.toLocaleDateString("pt-BR");
+    const hora = d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    return `${data} às ${hora}`;
   }
 </script>
 </body>

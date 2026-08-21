@@ -217,6 +217,7 @@
         <button class="chip" data-status="aberto">Aberto</button>
         <button class="chip" data-status="juridico">Com o jurídico</button>
         <button class="chip" data-status="concluido">Concluído</button>
+        <button class="chip" data-status="arquivado">🗄️ Arquivados</button>
       </div>
       <button type="button" class="btn btn-outline" id="btnModeloEmail">✉️ Modelo de e-mail</button>
       <button type="button" class="btn btn-primary" id="btnNovoSinistro">+ Novo Sinistro</button>
@@ -264,7 +265,7 @@
 </div>
 
 <script type="module">
-  import { auth, signOut, protegerPagina, getDocs, query, orderBy, SINISTROS_COL, statusBadge, fmtData, nomeLancador } from "./app-core.js";
+  import { auth, signOut, protegerPagina, getDocs, query, orderBy, SINISTROS_COL, statusBadge, fmtData, nomeLancador, foiAtualizadoDepoisDaCriacao } from "./app-core.js";
 
   let todos = [];
   let statusAtivo = "todos";
@@ -322,7 +323,9 @@
     const lista = document.getElementById("lista");
     const vazio = document.getElementById("vazio");
 
-    let filtrados = todos.filter((s) => statusAtivo === "todos" || s.status === statusAtivo);
+    let filtrados = statusAtivo === "arquivado"
+      ? todos.filter((s) => s.arquivado)
+      : todos.filter((s) => !s.arquivado && (statusAtivo === "todos" || s.status === statusAtivo));
 
     if (termo) {
       filtrados = filtrados.filter((s) => {
@@ -351,7 +354,10 @@
         <div class="veiculos">
           <span class="placas">${s.veiculoJuanil?.placa || "—"} × ${s.veiculoTerceiro?.placa || "—"}</span>
           <span class="partes">${s.veiculoJuanil?.condutor?.nome || "motorista não informado"} — vs — ${s.veiculoTerceiro?.proprietario?.nome || "terceiro não informado"}</span>
-          <span class="partes">Lançado por: ${nomeLancador(s.criadoPorEmail) || "não informado"}</span>
+          <span class="partes">Lançado por: ${nomeLancador(s.criadoPorEmail) || "não informado"}
+            ${foiAtualizadoDepoisDaCriacao(s) ? '<span class="aviso-atualizado-chip">⚠️ atualizado</span>' : ""}
+            ${s.arquivado ? '<span class="badge" style="background:#E3E7ED;color:#586074;">🗄️ arquivado</span>' : ""}
+          </span>
         </div>
         <div class="data"><b>${fmtData(s.ocorrencia?.data) || "—"}</b>${s.ocorrencia?.especifique || s.ocorrencia?.localTipo || ""}</div>
         <div class="data-docs">
@@ -380,8 +386,6 @@ Agradecemos o contato e confirmamos o recebimento das informações iniciais e d
 Conforme nosso procedimento padrão, para dar andamento ao processo completo de avaliação e reparo, toda a documentação será encaminhada ao departamento jurídico para análise.
 Caso seja verificada a procedência e o direito ao reparo após essa avaliação, enviaremos um termo de acordo formalizando o processo.
 De imediato, solicitamos o envio dos seguintes documentos obrigatórios:
-
-**FAVOR ENVIAR NO FORMATO PDF PARA DOCUMENTOS E MP4 PARA VÍDEOS**
 
 1. Registro Oficial do Acidente:
 E-BRAT da Polícia Militar,

@@ -49,6 +49,18 @@ export function nomeLancador(email) {
   return NOME_POR_EMAIL[email] || email;
 }
 
+// Considera "atualizado" só se a última alteração aconteceu mais de
+// 2 minutos depois da criação — evita que o autosave do preenchimento
+// inicial (que já dispara updateDoc várias vezes) acione o aviso à toa.
+export function foiAtualizadoDepoisDaCriacao(s) {
+  if (!s.criadoEm || !s.atualizadoEm) return false;
+  try {
+    return s.atualizadoEm.toMillis() - s.criadoEm.toMillis() > 120000;
+  } catch {
+    return false;
+  }
+}
+
 // Token aleatório e imprevisível para os links "sem senha" do jurídico
 // (usado como ID do documento em /compartilhamentos). 28 bytes de
 // aleatoriedade criptográfica — impossível de adivinhar por tentativa.

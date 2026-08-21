@@ -795,6 +795,7 @@
       const data = coletarForm();
       data.protocolo = protocolo;
       data.atualizadoEm = serverTimestamp();
+      data.atualizadoPorEmail = auth.currentUser.email;
 
       if (docRef) {
         if (precisaAdotarAutor) {

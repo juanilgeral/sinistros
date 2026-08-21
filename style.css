@@ -208,6 +208,35 @@ input,select,textarea{font-family:inherit;}
 }
 .banner-juridico-item:hover{background:var(--laranja);color:#fff;}
 
+.aviso-atualizado{
+  background:#FFD54A;
+  color:#000;
+  font-weight:700;
+  font-size:13.5px;
+  padding:11px 16px;
+  border-radius:9px;
+  margin-bottom:18px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  animation:piscar-aviso 1.1s ease-in-out infinite;
+}
+@keyframes piscar-aviso{
+  0%,100%{opacity:1;}
+  50%{opacity:.42;}
+}
+@media (prefers-reduced-motion: reduce){
+  .aviso-atualizado{animation:none;}
+}
+.aviso-atualizado-chip{
+  background:#FFD54A;color:#000;font-weight:700;font-size:11px;
+  padding:3px 9px;border-radius:20px;animation:piscar-aviso 1.1s ease-in-out infinite;
+  display:inline-block;
+}
+@media (prefers-reduced-motion: reduce){
+  .aviso-atualizado-chip{animation:none;}
+}
+
 .painel-processos{
   border:2px solid var(--vermelho);
   border-radius:14px;
