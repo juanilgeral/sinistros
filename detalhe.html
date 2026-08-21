@@ -79,7 +79,7 @@
     protegerPagina, getDoc, setDoc, deleteDoc, doc, serverTimestamp,
     SINISTROS_COL, COMPARTILHAMENTOS_COL, fmtData, fmtDinheiro, campoOuPendente,
     statusBadge, toast, nomeLancador, ADMIN_EMAIL, DIRETORIA_EMAIL, gerarTokenSeguro,
-    foiAtualizadoDepoisDaCriacao
+    precisaAvisarAtualizacao
   } from "./app-core.js";
 
   const params = new URLSearchParams(location.search);
@@ -108,7 +108,16 @@
         <span class="dot"></span>${s.protocolo || id}
       </div>`;
     document.title = `Sinistro ${s.protocolo || id} — Juanil`;
-    render(s, id, souDiretoria);
+
+    // Calcula ANTES de marcar como visto — assim o aviso aparece nesta
+    // visita (é o "primeiro acesso" desta pessoa a esta atualização) e,
+    // como já grava vistoEm em seguida, não aparece mais nas próximas.
+    const precisaAvisar = precisaAvisarAtualizacao(s, user.uid);
+    if (precisaAvisar) {
+      setDoc(ref, { vistoEm: { [user.uid]: s.atualizadoEm.toMillis() } }, { merge: true }).catch(console.error);
+    }
+
+    render(s, id, souDiretoria, precisaAvisar);
 
     if (podeGerenciar) {
       const modalExcluir = document.getElementById("modalExcluir");
@@ -147,7 +156,7 @@
           s = { ...s, ...patch };
           modalArquivar.classList.remove("show");
           atualizarBotoesArquivo();
-          render(s, id, souDiretoria);
+          render(s, id, souDiretoria, precisaAvisar);
           toast("Processo arquivado.", "ok");
         } catch (err) {
           console.error(err);
@@ -162,7 +171,7 @@
           await setDoc(ref, patch, { merge: true });
           s = { ...s, ...patch };
           atualizarBotoesArquivo();
-          render(s, id, souDiretoria);
+          render(s, id, souDiretoria, precisaAvisar);
           toast("Processo reaberto.", "ok");
         } catch (err) {
           console.error(err);
@@ -218,7 +227,7 @@
 
           s = { ...s, ...patch, compartilhamentoJuridico: { token, criadoPorEmail: user.email } };
           atualizarBotoesJuridico();
-          render(s, id, souDiretoria);
+          render(s, id, souDiretoria, precisaAvisar);
           toast("Enviado ao jurídico — link gerado.", "ok");
           abrirModalLink(token);
         } catch (err) {
@@ -288,7 +297,7 @@
         try {
           await salvarParecer(campo.value.trim());
           toast("Parecer salvo.", "ok");
-          render(s, id, souDiretoria);
+          render(s, id, souDiretoria, precisaAvisar);
         } catch (err) {
           console.error(err);
           toast("Erro ao salvar o parecer.", "err");
@@ -319,7 +328,7 @@
     }[key] || key;
   }
 
-  function render(s, id, souDiretoria) {
+  function render(s, id, souDiretoria, precisaAvisar) {
     const o = s.ocorrencia || {}, end = o.endereco || {}, cond = o.condicoes || {};
     const vj = s.veiculoJuanil || {}, emp = vj.empresa || {}, cJ = vj.condutor || {}, endCJ = cJ.endereco || {};
     const vt = s.veiculoTerceiro || {}, prop = vt.proprietario || {}, endProp = prop.endereco || {};
@@ -339,9 +348,9 @@
 
     document.getElementById("relatorio").innerHTML = `
       <div class="report-card">
-        ${foiAtualizadoDepoisDaCriacao(s) ? `
+        ${precisaAvisar ? `
         <div class="aviso-atualizado">
-          ⚠️ Processo atualizado em ${fmtDataHoraLocal(s.atualizadoEm)} por ${escapeHtmlLocal(nomeLancador(s.atualizadoPorEmail) || "usuário não identificado")}.
+          🖍️ Este processo foi atualizado em ${fmtDataHoraLocal(s.atualizadoEm)} por ${escapeHtmlLocal(nomeLancador(s.atualizadoPorEmail) || "usuário não identificado")} — desde sua última visita.
         </div>` : ""}
         ${s.arquivado ? `
         <div class="aviso-atualizado" style="background:#E3E7ED;">

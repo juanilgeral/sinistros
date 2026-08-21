@@ -265,12 +265,14 @@
 </div>
 
 <script type="module">
-  import { auth, signOut, protegerPagina, getDocs, query, orderBy, SINISTROS_COL, statusBadge, fmtData, nomeLancador, foiAtualizadoDepoisDaCriacao } from "./app-core.js";
+  import { auth, signOut, protegerPagina, getDocs, query, orderBy, SINISTROS_COL, statusBadge, fmtData, nomeLancador, precisaAvisarAtualizacao } from "./app-core.js";
 
   let todos = [];
   let statusAtivo = "todos";
+  let usuarioAtual = null;
 
   protegerPagina((user) => {
+    usuarioAtual = user;
     document.getElementById("userEmail").textContent = user.email;
     carregar();
   });
@@ -282,6 +284,16 @@
     const snap = await getDocs(q);
     todos = [];
     snap.forEach((d) => todos.push({ id: d.id, ...d.data() }));
+    // Ordena de novo explicitamente no cliente — garante que a ordem
+    // (mais recente primeiro) fique sempre estável e igual em qualquer
+    // filtro, inclusive nos Arquivados, mesmo que algum registro antigo
+    // não tenha o campo criadoEm.
+    todos.sort((a, b) => {
+      const ta = a.criadoEm?.toMillis ? a.criadoEm.toMillis() : 0;
+      const tb = b.criadoEm?.toMillis ? b.criadoEm.toMillis() : 0;
+      if (tb !== ta) return tb - ta;
+      return (b.protocolo || "").localeCompare(a.protocolo || "");
+    });
     renderBannerJuridico();
     render();
   }
@@ -355,7 +367,7 @@
           <span class="placas">${s.veiculoJuanil?.placa || "—"} × ${s.veiculoTerceiro?.placa || "—"}</span>
           <span class="partes">${s.veiculoJuanil?.condutor?.nome || "motorista não informado"} — vs — ${s.veiculoTerceiro?.proprietario?.nome || "terceiro não informado"}</span>
           <span class="partes">Lançado por: ${nomeLancador(s.criadoPorEmail) || "não informado"}
-            ${foiAtualizadoDepoisDaCriacao(s) ? '<span class="aviso-atualizado-chip">⚠️ atualizado</span>' : ""}
+            ${precisaAvisarAtualizacao(s, usuarioAtual?.uid) ? '<span class="aviso-atualizado-chip">🖍️ novidade</span>' : ""}
             ${s.arquivado ? '<span class="badge" style="background:#E3E7ED;color:#586074;">🗄️ arquivado</span>' : ""}
           </span>
         </div>
@@ -386,8 +398,6 @@ Agradecemos o contato e confirmamos o recebimento das informações iniciais e d
 Conforme nosso procedimento padrão, para dar andamento ao processo completo de avaliação e reparo, toda a documentação será encaminhada ao departamento jurídico para análise.
 Caso seja verificada a procedência e o direito ao reparo após essa avaliação, enviaremos um termo de acordo formalizando o processo.
 De imediato, solicitamos o envio dos seguintes documentos obrigatórios:
-
-*** FAVOR ENVIAR DOCUMENTOS NO FORMATO PDF - VÍDEOS NO FORMATO MP4 ***
 
 1. Registro Oficial do Acidente:
 E-BRAT da Polícia Militar,

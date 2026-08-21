@@ -61,6 +61,18 @@ export function foiAtualizadoDepoisDaCriacao(s) {
   }
 }
 
+// Mostra o aviso de "atualizado" só uma vez por usuário: cada sinistro
+// guarda em vistoEm um mapa {uid: <millis do atualizadoEm que ele já viu>}.
+// Enquanto o valor salvo for diferente do atualizadoEm atual, o aviso
+// aparece; assim que a pessoa abre o relatório, ele é gravado como visto
+// e o aviso some sozinho — sem precisar de ação nenhuma pra "desmarcar".
+export function precisaAvisarAtualizacao(s, uid) {
+  if (!uid || !foiAtualizadoDepoisDaCriacao(s)) return false;
+  const atualMillis = s.atualizadoEm?.toMillis ? s.atualizadoEm.toMillis() : null;
+  if (!atualMillis) return false;
+  return s.vistoEm?.[uid] !== atualMillis;
+}
+
 // Token aleatório e imprevisível para os links "sem senha" do jurídico
 // (usado como ID do documento em /compartilhamentos). 28 bytes de
 // aleatoriedade criptográfica — impossível de adivinhar por tentativa.

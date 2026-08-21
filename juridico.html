@@ -36,7 +36,7 @@
 </div>
 
 <script type="module">
-  import { db, doc, getDoc, fmtData, fmtDinheiro, campoOuPendente, statusBadge, nomeLancador, foiAtualizadoDepoisDaCriacao } from "./app-core.js";
+  import { db, doc, getDoc, fmtData, fmtDinheiro, campoOuPendente, statusBadge, nomeLancador } from "./app-core.js";
 
   const params = new URLSearchParams(location.search);
   const token = params.get("t");
@@ -66,7 +66,7 @@
       <div class="stamp ${s.status === 'concluido' ? '' : s.status === 'aberto' ? 'vermelho' : 'laranja'}">
         <span class="dot"></span>${s.protocolo || id}
       </div>`;
-    render(s, id, false);
+    render(s, id, false, false);
   }
   carregar();
 
@@ -89,7 +89,7 @@
     }[key] || key;
   }
 
-  function render(s, id, souDiretoria) {
+  function render(s, id, souDiretoria, precisaAvisar) {
     const o = s.ocorrencia || {}, end = o.endereco || {}, cond = o.condicoes || {};
     const vj = s.veiculoJuanil || {}, emp = vj.empresa || {}, cJ = vj.condutor || {}, endCJ = cJ.endereco || {};
     const vt = s.veiculoTerceiro || {}, prop = vt.proprietario || {}, endProp = prop.endereco || {};
@@ -109,9 +109,9 @@
 
     document.getElementById("relatorio").innerHTML = `
       <div class="report-card">
-        ${foiAtualizadoDepoisDaCriacao(s) ? `
+        ${precisaAvisar ? `
         <div class="aviso-atualizado">
-          ⚠️ Processo atualizado em ${fmtDataHoraLocal(s.atualizadoEm)} por ${escapeHtmlLocal(nomeLancador(s.atualizadoPorEmail) || "usuário não identificado")}.
+          🖍️ Este processo foi atualizado em ${fmtDataHoraLocal(s.atualizadoEm)} por ${escapeHtmlLocal(nomeLancador(s.atualizadoPorEmail) || "usuário não identificado")} — desde sua última visita.
         </div>` : ""}
         ${s.arquivado ? `
         <div class="aviso-atualizado" style="background:#E3E7ED;">
