@@ -8,6 +8,10 @@ rules_version = '2';
 // (a diretoria precisa disso para encaminhar ao jurídico e registrar
 // o parecer em qualquer sinistro, não só nos que ela mesma lançou).
 //
+// Uma vez que o processo está CONCLUÍDO ou ARQUIVADO, quem criou
+// deixa de poder editar/apagar — só administrador e diretoria mantêm
+// esse poder a partir daí, pra travar o processo depois de fechado.
+//
 // A coleção "compartilhamentos" guarda os links sem senha gerados
 // pela diretoria para o jurídico acessar um processo específico:
 // cada documento tem como ID o próprio token aleatório do link, então
@@ -34,7 +38,14 @@ service cloud.firestore {
                     && request.resource.data.criadoPorUid == request.auth.uid;
 
       allow update, delete: if request.auth != null
-                    && (resource.data.criadoPorUid == request.auth.uid || isAdmin() || isDiretoria());
+                    && (
+                         isAdmin() || isDiretoria()
+                         || (
+                              resource.data.criadoPorUid == request.auth.uid
+                              && resource.data.status != "concluido"
+                              && resource.data.arquivado != true
+                            )
+                       );
     }
 
     match /compartilhamentos/{token} {

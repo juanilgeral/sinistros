@@ -92,9 +92,10 @@
     if (!snap.exists()) { document.getElementById("relatorio").innerHTML = "<p>Sinistro não encontrado.</p>"; return; }
     let s = snap.data();
 
-    const souDono = s.criadoPorUid === user.uid;
     const souAdmin = user.email === ADMIN_EMAIL;
     const souDiretoria = user.email === DIRETORIA_EMAIL;
+    const travado = s.status === "concluido" || s.arquivado === true;
+    const souDono = s.criadoPorUid === user.uid && !travado;
     const podeGerenciar = souDono || souAdmin || souDiretoria;
 
     document.getElementById("linkEditar").href = `form.html?id=${encodeURIComponent(id)}`;
@@ -351,6 +352,10 @@
         ${precisaAvisar ? `
         <div class="aviso-atualizado">
           🖍️ Este processo foi atualizado em ${fmtDataHoraLocal(s.atualizadoEm)} por ${escapeHtmlLocal(nomeLancador(s.atualizadoPorEmail) || "usuário não identificado")} — desde sua última visita.
+        </div>` : ""}
+        ${s.status === "concluido" ? `
+        <div class="aviso-atualizado" style="background:#E3E7ED;">
+          🔒 Processo concluído — a partir de agora, só o administrador e a diretoria podem editá-lo ou excluí-lo.
         </div>` : ""}
         ${s.arquivado ? `
         <div class="aviso-atualizado" style="background:#E3E7ED;">

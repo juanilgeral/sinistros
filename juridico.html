@@ -113,6 +113,10 @@
         <div class="aviso-atualizado">
           🖍️ Este processo foi atualizado em ${fmtDataHoraLocal(s.atualizadoEm)} por ${escapeHtmlLocal(nomeLancador(s.atualizadoPorEmail) || "usuário não identificado")} — desde sua última visita.
         </div>` : ""}
+        ${s.status === "concluido" ? `
+        <div class="aviso-atualizado" style="background:#E3E7ED;">
+          🔒 Processo concluído — a partir de agora, só o administrador e a diretoria podem editá-lo ou excluí-lo.
+        </div>` : ""}
         ${s.arquivado ? `
         <div class="aviso-atualizado" style="background:#E3E7ED;">
           🗄️ Processo arquivado em ${fmtDataHoraLocal(s.arquivadoEm)} por ${escapeHtmlLocal(nomeLancador(s.arquivadoPorEmail) || "")}. Não aparece na lista principal até ser reaberto.

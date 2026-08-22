@@ -756,12 +756,16 @@
       const snap = await getDoc(docRef);
       if (snap.exists()) {
         const registro = snap.data();
-        const souDono = registro.criadoPorUid === user.uid;
         const souAdmin = user.email === ADMIN_EMAIL;
         const souDiretoria = user.email === DIRETORIA_EMAIL;
+        const travado = registro.status === "concluido" || registro.arquivado === true;
+        const souDono = registro.criadoPorUid === user.uid && !travado;
         if (!souDono && !souAdmin && !souDiretoria) {
-          toast("Você não tem permissão para editar este sinistro — só quem criou, o administrador ou a diretoria podem.", "err");
-          setTimeout(() => { location.href = `detalhe.html?id=${encodeURIComponent(editId)}`; }, 2000);
+          const motivo = travado
+            ? "Este processo está concluído ou arquivado — só o administrador ou a diretoria podem editá-lo a partir de agora."
+            : "Você não tem permissão para editar este sinistro — só quem criou, o administrador ou a diretoria podem.";
+          toast(motivo, "err");
+          setTimeout(() => { location.href = `detalhe.html?id=${encodeURIComponent(editId)}`; }, 2500);
           return;
         }
         preencherForm(registro);
