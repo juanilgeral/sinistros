@@ -113,7 +113,13 @@
       <div class="tab-panel" data-tab="juanil">
         <div class="section-title">Dados do veículo</div>
         <div class="field-grid cols-4">
-          <div class="field mono"><label>Placa <span class="req">*</span></label><input type="text" name="veiculoJuanil.placa" style="text-transform:uppercase;"></div>
+          <div class="field mono">
+            <label>Placa <span class="req">*</span></label>
+            <select id="selectPlacaJuanil" style="width:100%; margin-bottom:6px; padding:6px; font-family:inherit;">
+              <option value="">— Selecione um veículo da frota —</option>
+            </select>
+            <input type="text" name="veiculoJuanil.placa" id="inputPlacaJuanil" style="text-transform:uppercase;" placeholder="Ou digite a placa manualmente">
+          </div>
           <div class="field span-2"><label>Marca/Modelo</label><input type="text" name="veiculoJuanil.marcaModelo"></div>
           <div class="field"><label>Tipo do veículo</label><input type="text" name="veiculoJuanil.tipo" value="Caminhão"></div>
           <div class="field"><label>Cor predominante</label><input type="text" name="veiculoJuanil.cor"></div>
@@ -444,6 +450,152 @@
   } from "./app-core.js";
   import { COLLECTION } from "./firebase-config.js";
 
+  // ============================================================
+  // Auto-preenchimento do veículo Juanil a partir da planilha da frota
+  // (CSV publicado do Google Sheets — não altera registros já salvos)
+  // ============================================================
+  const URL_FROTA_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQxEd5paZ6mm3B_A9e6n5F5uxSb7_tbfAglzF_j-UpWhSxmbdw5ybX3R1IEiaQvFYcyKeZlj9mtU1fh/pub?gid=899274586&single=true&output=csv";
+  let frotaPorPlaca = {}; // placa normalizada → dados
+
+  function normalizarPlaca(p) {
+    return (p || "").toString().trim().toUpperCase().replace(/[\s\-]/g, "");
+  }
+
+  function limparChassi(c) {
+    if (!c) return "";
+    let s = c.toString().trim();
+    if (s.endsWith(".00")) s = s.slice(0, -3);
+    return s.toUpperCase();
+  }
+
+  async function carregarFrota() {
+    try {
+      const resp = await fetch(URL_FROTA_CSV);
+      if (!resp.ok) throw new Error("Falha ao buscar planilha");
+      const texto = await resp.text();
+      const linhas = texto.split(/\r?\n/);
+      // Cabeçalho está na linha com "PLACA" (índice ~3)
+      let inicioDados = 0;
+      for (let i = 0; i < Math.min(10, linhas.length); i++) {
+        if (linhas[i].includes("PLACA") && linhas[i].includes("RENAVAM")) {
+          inicioDados = i + 1;
+          break;
+        }
+      }
+      const select = document.getElementById("selectPlacaJuanil");
+      if (!select) return;
+
+      for (let i = inicioDados; i < linhas.length; i++) {
+        const linha = linhas[i].trim();
+        if (!linha) continue;
+        // Parser CSV simples (suficiente para esta planilha)
+        const cols = linha.split(",").map(c => c.trim());
+        if (cols.length < 10) continue;
+        const placaRaw = cols[2];
+        if (!placaRaw || placaRaw.length < 3) continue;
+        const placaNorm = normalizarPlaca(placaRaw);
+        if (!placaNorm) continue;
+
+        const dados = {
+          placa: placaRaw.toUpperCase().trim(),
+          renavam: cols[4] || "",
+          chassi: limparChassi(cols[5]),
+          marcaModelo: cols[6] || "",
+          ano: cols[8] || "",
+          cor: cols[9] || ""
+        };
+        frotaPorPlaca[placaNorm] = dados;
+
+        const opt = document.createElement("option");
+        opt.value = placaNorm;
+        opt.textContent = dados.placa + (dados.marcaModelo ? " — " + dados.marcaModelo : "");
+        select.appendChild(opt);
+      }
+
+      // Ordena as opções alfabeticamente (mantém a primeira vazia)
+      const opts = Array.from(select.options).slice(1);
+      opts.sort((a, b) => a.textContent.localeCompare(b.textContent, "pt-BR"));
+      opts.forEach(o => select.appendChild(o));
+
+      // Se já houver uma placa preenchida (edição), tenta selecionar
+      sincronizarSelectComInput();
+    } catch (err) {
+      console.warn("Não foi possível carregar a frota:", err);
+    }
+  }
+
+  function preencherCamposVeiculo(dados) {
+    if (!dados) return;
+    const set = (name, valor) => {
+      const el = document.querySelector(`[name="${name}"]`);
+      if (el && valor) el.value = valor;
+    };
+    set("veiculoJuanil.marcaModelo", dados.marcaModelo);
+    set("veiculoJuanil.cor", dados.cor);
+    set("veiculoJuanil.chassi", dados.chassi);
+    set("veiculoJuanil.renavam", dados.renavam);
+    if (dados.ano) {
+      set("veiculoJuanil.anoModelo", dados.ano);
+      // Se for um ano simples (4 dígitos), preenche também o de fabricação
+      if (/^\d{4}$/.test(dados.ano.trim())) {
+        set("veiculoJuanil.anoFab", dados.ano);
+      }
+    }
+    // Marca como da empresa
+    const radioSim = document.querySelector('input[name="veiculoJuanil.daEmpresa"][value="sim"]');
+    if (radioSim) radioSim.checked = true;
+    sujo = true;
+  }
+
+  function sincronizarSelectComInput() {
+    const input = document.getElementById("inputPlacaJuanil");
+    const select = document.getElementById("selectPlacaJuanil");
+    if (!input || !select) return;
+    const norm = normalizarPlaca(input.value);
+    if (norm && frotaPorPlaca[norm]) {
+      select.value = norm;
+    } else {
+      select.value = "";
+    }
+  }
+
+  // Eventos (script está no final do body, DOM já disponível)
+  carregarFrota();
+
+  const selectPlaca = document.getElementById("selectPlacaJuanil");
+  const inputPlaca = document.getElementById("inputPlacaJuanil");
+
+  if (selectPlaca) {
+    selectPlaca.addEventListener("change", () => {
+      const norm = selectPlaca.value;
+      if (!norm || !frotaPorPlaca[norm]) return;
+      const dados = frotaPorPlaca[norm];
+      if (inputPlaca) inputPlaca.value = dados.placa;
+      preencherCamposVeiculo(dados);
+    });
+  }
+
+  if (inputPlaca) {
+    inputPlaca.addEventListener("input", () => {
+      const norm = normalizarPlaca(inputPlaca.value);
+      if (selectPlaca && (!norm || !frotaPorPlaca[norm])) {
+        selectPlaca.value = "";
+      } else if (selectPlaca && frotaPorPlaca[norm]) {
+        selectPlaca.value = norm;
+      }
+    });
+    inputPlaca.addEventListener("change", () => {
+      const norm = normalizarPlaca(inputPlaca.value);
+      if (norm && frotaPorPlaca[norm]) {
+        preencherCamposVeiculo(frotaPorPlaca[norm]);
+      }
+    });
+  }
+
+  // ============================================================
+  // Fim do bloco de auto-preenchimento da frota
+  // ============================================================
+
   const params = new URLSearchParams(location.search);
   const editId = params.get("id");
   if (!editId) {
@@ -708,6 +860,10 @@
     if (data.protocolo) {
       document.getElementById("campoProtocolo").value = data.protocolo;
       document.getElementById("protocoloTag").textContent = data.protocolo;
+    }
+    // Sincroniza o seletor de frota se a placa já estiver preenchida
+    if (typeof sincronizarSelectComInput === "function") {
+      setTimeout(sincronizarSelectComInput, 100);
     }
   }
 
