@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dados do Motorista — Juanil</title>
+<style>
+  body { font-family: system-ui, -apple-system, sans-serif; max-width: 560px; margin: 0 auto; padding: 16px; background: #f5f5f5; }
+  h1 { font-size: 20px; color: #1B3A5C; margin-bottom: 4px; }
+  p.sub { color: #555; font-size: 14px; margin-top: 0; margin-bottom: 20px; }
+  .field { margin-bottom: 12px; }
+  label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; color: #333; }
+  input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; box-sizing: border-box; }
+  button:disabled { background: #ccc !important; cursor: not-allowed; opacity: 0.6; }
+  button.secondary { background: #25D366; margin-top: 8px; }
+  #resultado { margin-top: 20px; background: white; padding: 16px; border-radius: 8px; white-space: pre-wrap; font-family: monospace; font-size: 13px; border: 1px solid #ddd; display: none; }
+  .ok { color: #1E7A34; font-weight: 600; margin-top: 8px; }
+</style>
+</head>
+<body>
+<h1>Cadastro de Motorista</h1>
+<p class="sub">Preencha seus dados e envie para a empresa. Isso agiliza o preenchimento dos boletins de ocorrência.</p>
+
+<form id="f">
+  <div class="field"><label>Nome completo *</label><input type="text" name="nome" required></div>
+  <div class="field"><label>CPF *</label><input type="text" name="cpf" placeholder="000.000.000-00" maxlength="14" required></div>
+  <div class="field"><label>Data de nascimento *</label><input type="text" name="nascimento" placeholder="DD/MM/AAAA" maxlength="10" required></div>
+  <div class="field"><label>Nº de Registro CNH *</label><input type="text" name="cnh" placeholder="Somente números" required></div>
+  <div class="field"><label>Validade da CNH *</label><input type="text" name="cnhValidade" placeholder="DD/MM/AAAA" maxlength="10" required></div>
+  <div class="field"><label>Categoria da CNH *</label><input type="text" name="categoria" placeholder="Ex.: AE" required></div>
+  <div class="field"><label>Número do RG *</label><input type="text" name="rgNumero" placeholder="Somente o número" required></div>
+  <div class="field"><label>Órgão emissor *</label><input type="text" name="rgOrgao" placeholder="Ex.: IFP/RJ, SSP/SP" required></div>
+  <div class="field"><label>Telefone / WhatsApp *</label><input type="tel" name="telefone" placeholder="(21) 99999-9999" maxlength="15" required></div>
+  <h3 style="margin:18px 0 8px; font-size:16px;">Endereço</h3>
+  <div class="field"><label>CEP *</label><input type="text" name="cep" placeholder="00000-000" maxlength="9" required></div>
+  <div class="field"><label>Rua / Logradouro *</label><input type="text" name="logradouro" required></div>
+  <div class="field"><label>Número *</label><input type="text" name="numero" required></div>
+  <div class="field"><label>Complemento</label><input type="text" name="complemento"></div>
+  <div class="field"><label>Bairro *</label><input type="text" name="bairro" required></div>
+  <div class="field"><label>Cidade *</label><input type="text" name="cidade" required></div>
+  <div class="field"><label>UF *</label><input type="text" name="uf" maxlength="2" style="text-transform:uppercase;" required></div>
+  <button type="button" class="secondary" id="btnWhats" disabled>Enviar para a empresa no WhatsApp</button>
+</form>
+</body>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAvkKmzgmyYdX7AAMGY8N6xlj1YGaShS4U",
+  authDomain: "juanil-sinistros.firebaseapp.com",
+  projectId: "juanil-sinistros",
+  storageBucket: "juanil-sinistros.firebasestorage.app",
+  messagingSenderId: "971922054731",
+  appId: "1:971922054731:web:63990db8c56a1b6cb5f7ce"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+function tudoPreenchido() {
+  const f = document.getElementById("f");
+  const campos = ["nome","cpf","nascimento","cnh","cnhValidade","categoria","rgNumero","rgOrgao","telefone","cep","logradouro","numero","bairro","cidade","uf"];
+  return campos.every(name => {
+    const el = f.elements[name];
+    return el && el.value.trim() !== "";
+  });
+}
+
+function atualizarBotao() {
+  const btn = document.getElementById("btnWhats");
+  btn.disabled = !tudoPreenchido();
+}
+
+function coletarDados() {
+  const f = document.getElementById("f");
+  const up = v => (v || "").trim().toUpperCase();
+  return {
+    nome: up(f.nome.value),
+    cpf: up(f.cpf.value),
+    nascimento: f.nascimento.value,
+    cnh: up(f.cnh.value),
+    cnhValidade: f.cnhValidade.value,
+    categoria: up(f.categoria.value),
+    rgNumero: up(f.rgNumero.value),
+    rgOrgao: up(f.rgOrgao.value),
+    telefone: up(f.telefone.value),
+    cep: up(f.cep.value),
+    logradouro: up(f.logradouro.value),
+    numero: up(f.numero.value),
+    complemento: up(f.complemento.value),
+    bairro: up(f.bairro.value),
+    cidade: up(f.cidade.value),
+    uf: up(f.uf.value)
+  };
+}
+
+function montarTexto(dados) {
+  const t = `MOTORISTA - DADOS PARA CADASTRO
+
+NOME: ${dados.nome}
+CPF: ${dados.cpf}
+NASCIMENTO: ${dados.nascimento}
+CNH: ${dados.cnh}
+VALIDADE CNH: ${dados.cnhValidade}
+CATEGORIA: ${dados.categoria}
+RG: ${dados.rgNumero}
+ÓRGÃO EMISSOR: ${dados.rgOrgao}
+TELEFONE: ${dados.telefone}
+
+ENDEREÇO:
+CEP: ${dados.cep}
+LOGRADOURO: ${dados.logradouro}
+NÚMERO: ${dados.numero}
+COMPLEMENTO: ${dados.complemento || "—"}
+BAIRRO: ${dados.bairro}
+CIDADE: ${dados.cidade}
+UF: ${dados.uf}`;
+  return t.toUpperCase();
+}
+
+const numeroEmpresa = "552126675214"; // +55 21 2667-5214
+
+document.getElementById("btnWhats").onclick = async function() {
+  if (!tudoPreenchido()) return;
+  const dados = coletarDados();
+  const texto = montarTexto(dados);
+  const msg = encodeURIComponent(texto);
+
+  // Salva direto no sistema (coleção motoristas)
+  try {
+    await addDoc(collection(db, "motoristas"), {
+      nome: dados.nome,
+      cpf: dados.cpf,
+      nascimento: dados.nascimento,
+      cnhNumero: dados.cnh,
+      cnhValidade: dados.cnhValidade,
+      categoria: dados.categoria,
+      rg: dados.rgNumero,
+      rgOrgao: dados.rgOrgao,
+      telefone: dados.telefone,
+      status: "ativo",
+      endereco: {
+        cep: dados.cep,
+        logradouro: dados.logradouro,
+        numero: dados.numero,
+        complemento: dados.complemento,
+        bairro: dados.bairro,
+        cidade: dados.cidade,
+        uf: dados.uf
+      },
+      criadoEm: serverTimestamp(),
+      origem: "formulario-publico"
+    });
+    alert("Dados enviados com sucesso para o sistema!");
+  } catch (err) {
+    console.error(err);
+    alert("Não foi possível salvar no sistema agora. Enviando só pelo WhatsApp.");
+  }
+
+  // Abre o WhatsApp de qualquer forma
+  window.open(`https://wa.me/${numeroEmpresa}?text=${msg}`, "_blank");
+};
+
+// Máscaras e restrições de formato
+function soNumeros(el) {
+  el.value = el.value.replace(/\D/g, "");
+}
+
+function mascaraCPF(el) {
+  let v = el.value.replace(/\D/g, "").slice(0, 11);
+  if (v.length > 9) v = v.slice(0,3) + "." + v.slice(3,6) + "." + v.slice(6,9) + "-" + v.slice(9);
+  else if (v.length > 6) v = v.slice(0,3) + "." + v.slice(3,6) + "." + v.slice(6);
+  else if (v.length > 3) v = v.slice(0,3) + "." + v.slice(3);
+  el.value = v;
+}
+
+function mascaraCEP(el) {
+  let v = el.value.replace(/\D/g, "").slice(0, 8);
+  if (v.length > 5) v = v.slice(0,5) + "-" + v.slice(5);
+  el.value = v;
+}
+
+function mascaraTelefone(el) {
+  let v = el.value.replace(/\D/g, "").slice(0, 11);
+  if (v.length > 10) v = "(" + v.slice(0,2) + ") " + v.slice(2,7) + "-" + v.slice(7);
+  else if (v.length > 6) v = "(" + v.slice(0,2) + ") " + v.slice(2,6) + "-" + v.slice(6);
+  else if (v.length > 2) v = "(" + v.slice(0,2) + ") " + v.slice(2);
+  else if (v.length > 0) v = "(" + v;
+  el.value = v;
+}
+
+function soLetras(el) {
+  el.value = el.value.replace(/[^a-zA-ZÀ-ÿ\s]/g, "").toUpperCase();
+}
+
+function soLetrasNumeros(el) {
+  el.value = el.value.replace(/[^a-zA-Z0-9À-ÿ\s\/\-]/g, "").toUpperCase();
+}
+
+function soUF(el) {
+  el.value = el.value.replace(/[^a-zA-Z]/g, "").toUpperCase().slice(0, 2);
+}
+
+// Aplicar restrições
+document.querySelector('input[name="cpf"]').addEventListener("input", e => mascaraCPF(e.target));
+document.querySelector('input[name="cnh"]').addEventListener("input", e => soNumeros(e.target));
+document.querySelector('input[name="cep"]').addEventListener("input", e => mascaraCEP(e.target));
+document.querySelector('input[name="telefone"]').addEventListener("input", e => mascaraTelefone(e.target));
+document.querySelector('input[name="nome"]').addEventListener("input", e => soLetras(e.target));
+document.querySelector('input[name="logradouro"]').addEventListener("input", e => soLetrasNumeros(e.target));
+document.querySelector('input[name="bairro"]').addEventListener("input", e => soLetras(e.target));
+document.querySelector('input[name="cidade"]').addEventListener("input", e => soLetras(e.target));
+document.querySelector('input[name="categoria"]').addEventListener("input", e => soLetrasNumeros(e.target));
+document.querySelector('input[name="rgNumero"]').addEventListener("input", e => soLetrasNumeros(e.target));
+document.querySelector('input[name="rgOrgao"]').addEventListener("input", e => soLetrasNumeros(e.target));
+document.querySelector('input[name="numero"]').addEventListener("input", e => soLetrasNumeros(e.target));
+document.querySelector('input[name="uf"]').addEventListener("input", e => soUF(e.target));
+document.querySelector('input[name="complemento"]').addEventListener("input", e => soLetrasNumeros(e.target));
+
+// Máscara simples para datas (digita só números e coloca as barras)
+function mascaraData(el) {
+  let v = el.value.replace(/\D/g, "").slice(0, 8);
+  if (v.length >= 5) v = v.slice(0,2) + "/" + v.slice(2,4) + "/" + v.slice(4);
+  else if (v.length >= 3) v = v.slice(0,2) + "/" + v.slice(2);
+  el.value = v;
+}
+
+document.querySelectorAll('input[name="nascimento"], input[name="cnhValidade"]').forEach(el => {
+  el.addEventListener("input", () => mascaraData(el));
+});
+
+// Atualiza o estado do botão sempre que algo muda
+document.getElementById("f").addEventListener("input", atualizarBotao);
+document.getElementById("f").addEventListener("change", atualizarBotao);
+atualizarBotao();
+</script>
+</body>
+</html>

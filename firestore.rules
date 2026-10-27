@@ -66,6 +66,16 @@ service cloud.firestore {
       allow read, write: if request.auth != null;
     }
 
+    // Cadastro de motoristas da empresa
+    match /motoristas/{motoristaId} {
+      // Qualquer pessoa pode criar (formulário público dos motoristas)
+      allow create: if true;
+      // Só autenticados leem e atualizam
+      allow read, update: if request.auth != null;
+      // Apenas admin ou diretoria podem excluir
+      allow delete: if request.auth != null && (isAdmin() || isDiretoria());
+    }
+
     // Bloqueia qualquer outra coleção por padrão
     match /{document=**} {
       allow read, write: if false;
