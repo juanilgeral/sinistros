@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Importar Motoristas</title>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, serverTimestamp, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAvkKmzgmyYdX7AAMGY8N6xlj1YGaShS4U",
+  authDomain: "juanil-sinistros.firebaseapp.com",
+  projectId: "juanil-sinistros",
+  storageBucket: "juanil-sinistros.firebasestorage.app",
+  messagingSenderId: "971922054731",
+  appId: "1:971922054731:web:63990db8c56a1b6cb5f7ce"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// Dados dos 42 motoristas (extraídos da ficha oficial)
+const motoristas = await fetch("motoristas-import.json").then(r => r.json()).catch(() => []);
+
+async function importar() {
+  const status = document.getElementById("status");
+  status.textContent = "Importando...";
+  let ok = 0, skip = 0;
+  for (const m of motoristas) {
+    // evita duplicata pelo CPF
+    const q = query(collection(db, "motoristas"), where("cpf", "==", m.cpf));
+    const snap = await getDocs(q);
+    if (!snap.empty) { skip++; continue; }
+    await addDoc(collection(db, "motoristas"), {
+      ...m,
+      criadoEm: serverTimestamp()
+    });
+    ok++;
+  }
+  status.textContent = `Pronto! ${ok} importados, ${skip} já existiam.`;
+}
+
+onAuthStateChanged(auth, user => {
+  if (!user) {
+    document.getElementById("status").textContent = "Faça login no sistema primeiro.";
+    return;
+  }
+  document.getElementById("btn").disabled = false;
+  document.getElementById("btn").onclick = importar;
+});
+</script>
+</head>
+<body>
+<h1>Importar motoristas da ficha oficial</h1>
+<p>Abra esta página estando logado no sistema e clique no botão.</p>
+<button id="btn" disabled>Importar 42 motoristas</button>
+<p id="status">Aguardando login...</p>
+</body>
+</html>
