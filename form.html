@@ -153,6 +153,12 @@
 
         <div class="section-title">Dados do condutor</div>
         <div class="field-grid cols-2">
+          <div class="field span-2">
+            <label>Selecionar motorista cadastrado</label>
+            <select id="selectMotoristaJuanil">
+              <option value="">— digite manualmente ou selecione —</option>
+            </select>
+          </div>
           <div class="field span-2"><label>Nome completo</label><input type="text" name="veiculoJuanil.condutor.nome"></div>
           <div class="field mono"><label>CPF</label><input type="text" name="veiculoJuanil.condutor.cpf"></div>
           <div class="field"><label>Data de nascimento</label><input type="date" name="veiculoJuanil.condutor.nascimento"></div>
@@ -1023,6 +1029,58 @@
       setTimeout(() => { location.href = `detalhe.html?id=${encodeURIComponent(docRef.id)}`; }, 700);
     }
   });
+
+  // Seletor de motoristas cadastrados (preenche automaticamente)
+  (async function carregarMotoristas() {
+    const select = document.getElementById("selectMotoristaJuanil");
+    if (!select) return;
+    try {
+      const { getFirestore, collection, getDocs, query, where } = await import("https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js");
+      const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js");
+      const { firebaseConfig } = await import("./firebase-config.js");
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      const q = query(collection(db, "motoristas"), where("status", "==", "ativo"));
+      const snap = await getDocs(q);
+      const lista = [];
+      snap.forEach(doc => lista.push({ id: doc.id, ...doc.data() }));
+      lista.sort((a, b) => (a.nome || "").localeCompare(b.nome || ""));
+      lista.forEach(m => {
+        const opt = document.createElement("option");
+        opt.value = m.id;
+        opt.textContent = m.nome;
+        opt.dataset.motorista = JSON.stringify(m);
+        select.appendChild(opt);
+      });
+      select.addEventListener("change", () => {
+        const opt = select.selectedOptions[0];
+        if (!opt || !opt.dataset.motorista) return;
+        const m = JSON.parse(opt.dataset.motorista);
+        const set = (name, val) => {
+          const el = document.querySelector(`[name="${name}"]`);
+          if (el) el.value = val || "";
+        };
+        set("veiculoJuanil.condutor.nome", m.nome);
+        set("veiculoJuanil.condutor.cpf", m.cpf);
+        set("veiculoJuanil.condutor.nascimento", m.nascimento);
+        set("veiculoJuanil.condutor.cnhNumero", m.cnhNumero);
+        set("veiculoJuanil.condutor.cnhValidade", m.cnhValidade);
+        set("veiculoJuanil.condutor.categoria", m.categoria);
+        set("veiculoJuanil.condutor.rg", [m.rg, m.rgOrgao].filter(Boolean).join(" "));
+        if (m.endereco) {
+          set("veiculoJuanil.condutor.endereco.cep", m.endereco.cep);
+          set("veiculoJuanil.condutor.endereco.logradouro", m.endereco.logradouro);
+          set("veiculoJuanil.condutor.endereco.numero", m.endereco.numero);
+          set("veiculoJuanil.condutor.endereco.complemento", m.endereco.complemento);
+          set("veiculoJuanil.condutor.endereco.bairro", m.endereco.bairro);
+          set("veiculoJuanil.condutor.endereco.cidade", m.endereco.cidade);
+          set("veiculoJuanil.condutor.endereco.uf", m.endereco.uf);
+        }
+      });
+    } catch (e) {
+      console.error("Erro ao carregar motoristas", e);
+    }
+  })();
 
 </script>
 </body>
