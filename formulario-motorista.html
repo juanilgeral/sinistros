@@ -47,7 +47,7 @@ Com isso a gente consegue agilizar boletins de ocorrência, registros com client
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
-import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, serverTimestamp, query, where, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAvkKmzgmyYdX7AAMGY8N6xlj1YGaShS4U",
@@ -130,9 +130,11 @@ document.getElementById("btnWhats").onclick = async function() {
   const texto = montarTexto(dados);
   const msg = encodeURIComponent(texto);
 
-  // Salva direto no sistema (coleção motoristas)
+  // Salva ou atualiza no sistema (coleção motoristas)
   try {
-    await addDoc(collection(db, "motoristas"), {
+    const q = query(collection(db, "motoristas"), where("cpf", "==", dados.cpf));
+    const snap = await getDocs(q);
+    const payload = {
       nome: dados.nome,
       cpf: dados.cpf,
       nascimento: dados.nascimento,
@@ -152,10 +154,21 @@ document.getElementById("btnWhats").onclick = async function() {
         cidade: dados.cidade,
         uf: dados.uf
       },
-      criadoEm: serverTimestamp(),
+      atualizadoEm: serverTimestamp(),
       origem: "formulario-publico"
-    });
-    alert("Dados enviados com sucesso para o sistema!");
+    };
+
+    if (!snap.empty) {
+      // Já existe → atualiza o primeiro encontrado
+      const ref = snap.docs[0].ref;
+      await updateDoc(ref, payload);
+      alert("Dados atualizados com sucesso no sistema!");
+    } else {
+      // Novo → cria
+      payload.criadoEm = serverTimestamp();
+      await addDoc(collection(db, "motoristas"), payload);
+      alert("Dados enviados com sucesso para o sistema!");
+    }
   } catch (err) {
     console.error(err);
     alert("Não foi possível salvar no sistema agora. Enviando só pelo WhatsApp.");
